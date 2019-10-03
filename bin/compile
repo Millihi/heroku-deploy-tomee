@@ -42,9 +42,8 @@ curl --silent --location "${TOMEE_URL}" | tar xz
 mv -vf "${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}" "${BUILD_DIR}/tomee"
 cp -vrf "${BUILD_DIR}/config/"* "${TOMEE_HOME}/conf/"
 cp -vrf "${BUILD_DIR}/bin/setenv.sh" "${TOMEE_HOME}/bin/"
-cp -vrf "${BUILD_DIR}/bin/run.sh" "${TOMEE_HOME}/bin/"
 cp -vrf "${BUILD_DIR}/webapps/"*.war "${TOMEE_HOME}/webapps/"
-chmod +x "${TOMEE_HOME}/bin/run.sh"
+chmod +x "${TOMEE_HOME}/bin/setenv.sh"
 echo " DONE"
 
 
