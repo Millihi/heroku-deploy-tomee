@@ -50,4 +50,3 @@
    <role rolename="manager-gui"/>
    <user username="admin" password="nimda" roles="manager-gui,admin-gui"/>
 </tomcat-users>
-

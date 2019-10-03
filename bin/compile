@@ -42,17 +42,17 @@ echo " DONE"
 
 # Build TomEE server.
 cd "${BUILD_DIR}"
-echo "-----> Bundling TomEE version $TOMEE_VERSION"
+echo -n "-----> Bundling TomEE version $TOMEE_VERSION"
 curl --silent --location "${TOMEE_URL}" | tar xz
 mv -vf "${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}" "${BUILD_DIR}/tomee"
-cp -vrf "${BUILD_DIR}/server/bin/"* "${TOMEE_HOME}/bin/"
-cp -vrf "${BUILD_DIR}/server/config/"* "${TOMEE_HOME}/conf/"
-cp -vrf "${BUILD_DIR}/server/webapps/"* "${TOMEE_HOME}/webapps/"
+cp -vrf "${BUILD_DIR}/server/"* "${TOMEE_HOME}/"
 chmod +x "${TOMEE_HOME}/bin/setenv.sh"
 cd "${TOMEE_HOME}/lib"
-rm -vrf "${TOMEE_HOME}/lib/bval-"*
-curl --silent --remote-name --location "${BVAL_CORE_URL}" &
-curl --silent --remote-name --location "${BVAL_JSR_URL}" &
+if [ "${TOMEE_VERSION}" = "8.0.0" ]; then
+   rm -vrf "${TOMEE_HOME}/lib/bval-"*
+   curl --silent --remote-name --location "${BVAL_CORE_URL}" &
+   curl --silent --remote-name --location "${BVAL_JSR_URL}" &
+fi
 curl --silent --remote-name --location "${DERBYCLIENT_URL}" &
 wait
 echo " DONE"
@@ -62,7 +62,7 @@ echo " DONE"
 
 # Build boot.sh
 cd "${BUILD_DIR}"
-echo "-----> Bundling boot.sh"
+echo -n "-----> Bundling boot.sh"
 cat >>boot.sh <<EOF
 #!/usr/bin/env sh
 
