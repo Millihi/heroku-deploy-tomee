@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+# Fail fast
+set -e
+
+# Config
+BIN_DIR="$(dirname "$0")"
+BUILD_DIR="$1"
+CACHE_DIR="$2"
+LP_DIR="$(realpath "${BIN_DIR}/..")"
+
+TOMEE_VERSION="1.7.5"
+
+JVM_BPACK_URL="http://heroku-jvm-common.s3.amazonaws.com/jvm-buildpack-common.tar.gz"
+TOMEE_URL="http://repo1.maven.org/maven2/org/apache/openejb/apache-tomee/$TOMEE_VERSION/apache-tomee-$TOMEE_VERSION-plus.tar.gz"
+
+
+
+# Build JVM
+cd "${LP_DIR}"
+curl --silent --location "${JVM_BPACK_URL}" | tar xz
+. bin/java
+echo "java.runtime.version=1.8" > ${BUILD_DIR}/system.properties
+logger -p user.notice -t "slugc[$$]" "language_pack_java download_jdk"
+LOGGER_FLAGS="${LOGGER_FLAGS} download_jdk"
+javaVersion="$(detect_java_version "${BUILD_DIR}")"
+echo -n "-----> Installing OpenJDK ${javaVersion}..."
+install_java "${BUILD_DIR}" "${javaVersion}"
+jdk_overlay "${BUILD_DIR}"
+echo " DONE"
+
+
+
+
+# Build TomEE server.
+export TOMEE_HOME="${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}"
+cd "${BUILD_DIR}"
+echo "-----> Bundling TomEE version $TOMEE_VERSION"
+curl --silent --location "${TOMEE_URL}" | tar xz
+cp -vrf "${BUILD_DIR}/config/"* "${TOMEE_HOME}/conf/"
+cp -vrf "${BUILD_DIR}/bin/setenv.sh" "${TOMEE_HOME}/bin/"
+cp -vrf "${BUILD_DIR}/bin/run.sh" "${TOMEE_HOME}/bin/"
+cp -vrf "${BUILD_DIR}/webapps/"*.war "${TOMEE_HOME}/webapps/"
+
+
+
+
+cat >>boot.sh <<EOF
+"${TOMEE_HOME}/bin/run.sh"
+EOF
+chmod +x boot.sh
+
+
+
+
+exit 0
