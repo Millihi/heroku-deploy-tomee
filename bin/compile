@@ -60,6 +60,18 @@ echo " DONE"
 
 
 
+# Create admin password
+cd "${BUILD_DIR}"
+echo "!!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
+echo -n "-----> Admin password is "
+pv_random="$(dd if=/dev/urandom count=1 2>/dev/null | md5sum | cut -c 1-6)"
+sed -i.bak -e "s/nimda/${pv_random}/" "${TOMEE_HOME}/conf/tomcat-users.xml"
+echo "${pv_random}"
+echo "!!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
+
+
+
+
 # Build boot.sh
 cd "${BUILD_DIR}"
 echo -n "-----> Bundling boot.sh"
