@@ -20,10 +20,10 @@ TOMEE_HOME="${BUILD_DIR}/tomee"
 
 
 # Build JVM
-cd "${LP_DIR}"
+cd "${BUILD_DIR}"
 curl --silent --location "${JVM_BPACK_URL}" | tar xz
 . bin/java
-echo "java.runtime.version=1.8" > ${BUILD_DIR}/system.properties
+echo "java.runtime.version=1.8" > "${BUILD_DIR}/system.properties"
 logger -p user.notice -t "slugc[$$]" "language_pack_java download_jdk"
 LOGGER_FLAGS="${LOGGER_FLAGS} download_jdk"
 javaVersion="$(detect_java_version "${BUILD_DIR}")"
@@ -55,11 +55,13 @@ echo "-----> Bundling boot.sh"
 cat >>boot.sh <<EOF
 #!/usr/bin/env sh -x
 
+export JAVA_HOME=~/.jdk
+export JAVA_HOME=~/.jdk/jre
 export CATALINA_HOME=~/tomee
-export CATALINA_BASE="${CATALINA_HOME}"
-export JAVA_OPTS="-Dhttp.port=${PORT}"
+export CATALINA_BASE="\${CATALINA_HOME}"
+export JAVA_OPTS="-Dhttp.port=\${PORT}"
 
-exec "\${CATALINA_HOME}/bin/startup.sh"
+"\${CATALINA_HOME}/bin/startup.sh"
 EOF
 chmod +x boot.sh
 echo " DONE"
