@@ -57,8 +57,10 @@ cat >>boot.sh <<EOF
 #!/usr/bin/env sh -x
 
 export CATALINA_HOME=~/tomee
+export CATALINA_BASE="${CATALINA_HOME}"
+export JAVA_OPTS="-Dhttp.port=${PORT}"
 
-"\${CATALINA_HOME}/bin/run.sh"
+exec "\${CATALINA_HOME}/bin/startup.sh"
 EOF
 chmod +x boot.sh
 echo " DONE"
