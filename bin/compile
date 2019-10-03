@@ -55,13 +55,12 @@ echo "-----> Bundling boot.sh"
 cat >>boot.sh <<EOF
 #!/usr/bin/env sh -x
 
-export JAVA_HOME=~/.jdk
-export JAVA_HOME=~/.jdk/jre
-export CATALINA_HOME=~/tomee
-export CATALINA_BASE="\${CATALINA_HOME}"
+export JAVA_HOME="\${HOME}/.jdk"
+export JRE_HOME="\${HOME}/.jdk/jre"
+export CATALINA_HOME="\${HOME}/tomee"
 export JAVA_OPTS="-Dhttp.port=\${PORT}"
 
-"\${CATALINA_HOME}/bin/startup.sh"
+exec "\${CATALINA_HOME}/bin/startup.sh"
 EOF
 chmod +x boot.sh
 echo " DONE"
