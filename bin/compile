@@ -60,7 +60,7 @@ export JRE_HOME="\${HOME}/.jdk/jre"
 export CATALINA_HOME="\${HOME}/tomee"
 export JAVA_OPTS="-Dhttp.port=\${PORT}"
 
-exec "\${CATALINA_HOME}/bin/startup.sh"
+"\${CATALINA_HOME}/bin/catalina.sh" "run"
 EOF
 chmod +x boot.sh
 echo " DONE"
