@@ -14,6 +14,8 @@ TOMEE_VERSION="1.7.5"
 
 JVM_BPACK_URL="http://heroku-jvm-common.s3.amazonaws.com/jvm-buildpack-common.tar.gz"
 TOMEE_URL="http://repo1.maven.org/maven2/org/apache/openejb/apache-tomee/$TOMEE_VERSION/apache-tomee-$TOMEE_VERSION-plus.tar.gz"
+TOMEE_HOME="${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}"
+
 
 
 
@@ -34,7 +36,6 @@ echo " DONE"
 
 
 # Build TomEE server.
-export TOMEE_HOME="${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}"
 cd "${BUILD_DIR}"
 echo "-----> Bundling TomEE version $TOMEE_VERSION"
 curl --silent --location "${TOMEE_URL}" | tar xz
@@ -42,11 +43,16 @@ cp -vrf "${BUILD_DIR}/config/"* "${TOMEE_HOME}/conf/"
 cp -vrf "${BUILD_DIR}/bin/setenv.sh" "${TOMEE_HOME}/bin/"
 cp -vrf "${BUILD_DIR}/bin/run.sh" "${TOMEE_HOME}/bin/"
 cp -vrf "${BUILD_DIR}/webapps/"*.war "${TOMEE_HOME}/webapps/"
+chmod +x "${TOMEE_HOME}/bin/run.sh"
 
 
 
 
 cat >>boot.sh <<EOF
+#!/usr/bin/env sh -x
+
+export CATALINA_HOME=~/"apache-tomee-plus-${TOMEE_VERSION}"
+
 "${TOMEE_HOME}/bin/run.sh"
 EOF
 chmod +x boot.sh
