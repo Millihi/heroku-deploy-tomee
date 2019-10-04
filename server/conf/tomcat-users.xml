@@ -48,5 +48,5 @@
   -->
    <role rolename="admin-gui"/>
    <role rolename="manager-gui"/>
-   <user username="admin" password="nimda" roles="manager-gui,admin-gui"/>
+   <user username="admin" password="%%PASSWORD%%" roles="manager-gui,admin-gui"/>
 </tomcat-users>

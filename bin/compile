@@ -4,6 +4,10 @@
 # Fail fast
 set -e
 
+# Constants
+POINTER="----->"
+SPACER="      "
+
 # Config
 BIN_DIR="$(dirname "$0")"
 BUILD_DIR="$1"
@@ -11,7 +15,7 @@ CACHE_DIR="$2"
 
 TOMEE_VERSION="8.0.0"
 TOMEE_HOME="${BUILD_DIR}/tomee"
-JVM_VERSION="1.8"
+JVM_VERSION="zulu-1.8.0_212"
 
 JVM_BPACK_URL="http://heroku-jvm-common.s3.amazonaws.com/jvm-buildpack-common.tar.gz"
 TOMEE_URL="http://repo1.maven.org/maven2/org/apache/tomee/apache-tomee/${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
@@ -24,7 +28,7 @@ DERBYCLIENT_URL="https://repo1.maven.org/maven2/org/apache/derby/derbyclient/10.
 
 # Build JVM
 cd "${BUILD_DIR}"
-echo -n "-----> Bundling JVM ${JVM_VERSION}..."
+echo -n "${POINTER} Bundling JVM ${JVM_VERSION}..."
 curl --silent --location "${JVM_BPACK_URL}" | tar xz
 . bin/java
 echo "java.runtime.version=${JVM_VERSION}" > "${BUILD_DIR}/system.properties"
@@ -32,7 +36,7 @@ logger -p user.notice -t "slugc[$$]" "language_pack_java download_jdk"
 LOGGER_FLAGS="${LOGGER_FLAGS} download_jdk"
 javaVersion="$(detect_java_version "${BUILD_DIR}")"
 echo " DONE"
-echo -n "-----> Installing OpenJDK ${javaVersion}..."
+echo -n "${POINTER} Installing OpenJDK ${javaVersion}..."
 install_java "${BUILD_DIR}" "${javaVersion}"
 jdk_overlay "${BUILD_DIR}"
 echo " DONE"
@@ -42,14 +46,14 @@ echo " DONE"
 
 # Build TomEE server.
 cd "${BUILD_DIR}"
-echo -n "-----> Bundling TomEE version $TOMEE_VERSION"
+echo -n "${POINTER} Bundling TomEE version $TOMEE_VERSION"
 curl --silent --location "${TOMEE_URL}" | tar xz
-mv -vf "${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}" "${BUILD_DIR}/tomee"
-cp -vrf "${BUILD_DIR}/server/"* "${TOMEE_HOME}/"
+mv -f "${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}" "${BUILD_DIR}/tomee"
+cp -rf "${BUILD_DIR}/server/"* "${TOMEE_HOME}/"
 chmod +x "${TOMEE_HOME}/bin/setenv.sh"
 cd "${TOMEE_HOME}/lib"
 if [ "${TOMEE_VERSION}" = "8.0.0" ]; then
-   rm -vrf "${TOMEE_HOME}/lib/bval-"*
+   rm -rf "${TOMEE_HOME}/lib/bval-"*
    curl --silent --remote-name --location "${BVAL_CORE_URL}" &
    curl --silent --remote-name --location "${BVAL_JSR_URL}" &
 fi
@@ -62,19 +66,20 @@ echo " DONE"
 
 # Create admin password
 cd "${BUILD_DIR}"
-echo "!!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
-echo -n "-----> Admin password is "
+echo "${POINTER} Create admin password"
+echo "${SPACER} !!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
+echo -n "${SPACER} Admin password is "
 pv_random="$(dd if=/dev/urandom count=1 2>/dev/null | md5sum | cut -c 1-6)"
-sed -i.bak -e "s/nimda/${pv_random}/" "${TOMEE_HOME}/conf/tomcat-users.xml"
+sed -i.bak -e "s/%%PASSWORD%%/${pv_random}/" "${TOMEE_HOME}/conf/tomcat-users.xml"
 echo "${pv_random}"
-echo "!!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
+echo "${SPACER} !!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
 
 
 
 
 # Build boot.sh
 cd "${BUILD_DIR}"
-echo -n "-----> Bundling boot.sh"
+echo -n "${POINTER} Bundling boot.sh"
 cat >>boot.sh <<EOF
 #!/usr/bin/env sh
 
