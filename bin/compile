@@ -9,19 +9,22 @@ POINTER="----->"
 SPACER="      "
 
 # Config
-BIN_DIR="$(dirname "$0")"
-BUILD_DIR="$1"
-CACHE_DIR="$2"
+BPACK_DIR="$(realpath "$(dirname "$0")/..")"
+BUILD_DIR="$(realpath "$1")"
+CACHE_DIR="$(realpath "$2")"
 
 TOMEE_VERSION="8.0.0"
 TOMEE_HOME="${BUILD_DIR}/tomee"
 JVM_VERSION="1.8"
+JVM_HOME="${BUILD_DIR}/.jdk"
 
+MAVEN_REPO_URL="https://repo1.maven.org/maven2"
+APACHE_REPO_URL="${MAVEN_REPO_URL}/org/apache"
 JVM_BPACK_URL="http://heroku-jvm-common.s3.amazonaws.com/jvm-buildpack-common.tar.gz"
-TOMEE_URL="http://repo1.maven.org/maven2/org/apache/tomee/apache-tomee/${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
-BVAL_CORE_URL="https://repo1.maven.org/maven2/org/apache/bval/bval-core/1.1.2/bval-core-1.1.2.jar"
-BVAL_JSR_URL="https://repo1.maven.org/maven2/org/apache/bval/bval-jsr/1.1.2/bval-jsr-1.1.2.jar"
-DERBYCLIENT_URL="https://repo1.maven.org/maven2/org/apache/derby/derbyclient/10.12.1.1/derbyclient-10.12.1.1.jar"
+TOMEE_URL="${APACHE_REPO_URL}/tomee/apache-tomee/${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
+BVAL_CORE_URL="${APACHE_REPO_URL}/bval/bval-core/1.1.2/bval-core-1.1.2.jar"
+BVAL_JSR_URL="${APACHE_REPO_URL}/bval/bval-jsr/1.1.2/bval-jsr-1.1.2.jar"
+DERBYCLIENT_URL="${APACHE_REPO_URL}/derby/derbyclient/10.12.1.1/derbyclient-10.12.1.1.jar"
 
 
 
@@ -39,6 +42,11 @@ echo " DONE"
 echo -n "${POINTER} Installing OpenJDK ${javaVersion}..."
 install_java "${BUILD_DIR}" "${javaVersion}"
 jdk_overlay "${BUILD_DIR}"
+if [ ! -d "${JVM_HOME}" ]; then
+   echo " FAIL"
+   echo "${SPACER} JVM not found in [${JVM_HOME}]"
+   exit 1
+fi
 echo " DONE"
 
 
@@ -49,7 +57,7 @@ cd "${BUILD_DIR}"
 echo -n "${POINTER} Bundling TomEE version $TOMEE_VERSION"
 curl --silent --location "${TOMEE_URL}" | tar xz
 mv -f "${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}" "${BUILD_DIR}/tomee"
-cp -rf "${BUILD_DIR}/server/"* "${TOMEE_HOME}/"
+cp -rf "${BPACK_DIR}/server/"* "${TOMEE_HOME}/"
 chmod +x "${TOMEE_HOME}/bin/setenv.sh"
 cd "${TOMEE_HOME}/lib"
 if [ "${TOMEE_VERSION}" = "8.0.0" ]; then
@@ -89,7 +97,12 @@ export CATALINA_HOME="\${HOME}/tomee"
 export JAVA_OPTS="-Dhttp.port=\${PORT}"
 
 "\${CATALINA_HOME}/bin/catalina.sh" "run"
+wait
 EOF
+if [ ! -f boot.sh ]; then
+   echo " FAIL"
+   exit 1
+fi
 chmod +x boot.sh
 echo " DONE"
 

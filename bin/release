@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
-cat <<EOF
+echo <<EOF
 ---
 default_process_types:
-  web: sh boot.sh
+  web: boot.sh
 EOF
