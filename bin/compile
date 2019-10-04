@@ -15,7 +15,7 @@ CACHE_DIR="$2"
 
 TOMEE_VERSION="8.0.0"
 TOMEE_HOME="${BUILD_DIR}/tomee"
-JVM_VERSION="zulu-1.8.0_212"
+JVM_VERSION="1.8"
 
 JVM_BPACK_URL="http://heroku-jvm-common.s3.amazonaws.com/jvm-buildpack-common.tar.gz"
 TOMEE_URL="http://repo1.maven.org/maven2/org/apache/tomee/apache-tomee/${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
