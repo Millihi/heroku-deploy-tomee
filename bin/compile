@@ -24,7 +24,6 @@ JVM_BPACK_URL="http://heroku-jvm-common.s3.amazonaws.com/jvm-buildpack-common.ta
 TOMEE_URL="${APACHE_REPO_URL}/tomee/apache-tomee/${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
 BVAL_CORE_URL="${APACHE_REPO_URL}/bval/bval-core/1.1.2/bval-core-1.1.2.jar"
 BVAL_JSR_URL="${APACHE_REPO_URL}/bval/bval-jsr/1.1.2/bval-jsr-1.1.2.jar"
-DERBYCLIENT_URL="${APACHE_REPO_URL}/derby/derbyclient/10.12.1.1/derbyclient-10.12.1.1.jar"
 
 
 
@@ -65,7 +64,6 @@ if [ "${TOMEE_VERSION}" = "8.0.0" ]; then
    curl --silent --remote-name --location "${BVAL_CORE_URL}" &
    curl --silent --remote-name --location "${BVAL_JSR_URL}" &
 fi
-curl --silent --remote-name --location "${DERBYCLIENT_URL}" &
 wait
 echo " DONE"
 
