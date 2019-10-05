@@ -81,6 +81,7 @@ installDerbyDatabase () {
    mv -f "${BUILD_DIR}/db-derby-${DERBY_VERSION}-bin" "${DERBY_HOME}"
 
    cp -rf "${BPACK_DIR}/database/"* "${DERBY_HOME}/"
+   chmod +x "${DERBY_HOME}/bin/derby_server.sh"
    chmod +x "${DERBY_HOME}/bin/setenv.sh"
    mkdir -p "${DERBY_HOME}/db"
 
