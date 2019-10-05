@@ -50,4 +50,4 @@ export CLASSPATH="${DERBY_CLASSPATH}"
 eval exec "\"${JAVA_CMD}\"" \
    ${DERBY_OPTS} \
    -classpath "\"${CLASSPATH}\"" \
-   org.apache.derby.drda.NetworkServerControl "${controlCommand}"
+   org.apache.derby.drda.NetworkServerControl "${controlCommand}" "$@"
