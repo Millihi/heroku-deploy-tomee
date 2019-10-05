@@ -11,7 +11,7 @@ BPACK_DIR="$(realpath "$(dirname "$0")/..")"
 BUILD_DIR="$(realpath "$1")"
 CACHE_DIR="$(realpath "$2")"
 
-DERBY_VERSION="10.12.1.1"
+DERBY_VERSION="10.14.2.0"
 DERBY_HOME="${BUILD_DIR}/derby"
 TOMEE_VERSION="8.0.0"
 TOMEE_HOME="${BUILD_DIR}/tomee"
@@ -199,7 +199,7 @@ handleShutdown () {
 
 finalize () {
    echo -n "\${NAME}: Finalize... "
-   sleep 5
+   pushToDropbox
    echo "DONE"
 }
 
