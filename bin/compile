@@ -112,7 +112,10 @@ finalize () {
    echo "Shutdown successful."
 }
 
-trap "finalize (); exit 0" TERM
+trap "
+   finalize ()
+   exit 0
+" TERM
 
 "\${CATALINA_HOME}/bin/catalina.sh" "run"
 wait
