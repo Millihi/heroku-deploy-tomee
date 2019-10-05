@@ -185,11 +185,10 @@ main () {
    exit 0
 }
 
-handleSigTerm () {
+handleShutdown () {
    echo "\${NAME}: Bootloader caught SIGTERM."
-   "\${CATALINA_CMD}" "stop" "15" &
-   wait
-   "\${DERBY_CMD}" "stop" &
+   "\${CATALINA_CMD}" "stop" "15"
+   "\${DERBY_CMD}" "stop"
    wait
    finalize
    exit 0
@@ -201,7 +200,7 @@ finalize () {
    echo "DONE"
 }
 
-trap "handleSigTerm" TERM
+trap "handleShutdown" INT TERM
 
 main
 EOF
