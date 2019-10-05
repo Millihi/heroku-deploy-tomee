@@ -113,12 +113,12 @@ finalize () {
 }
 
 trap "
-   echo "Bootloader caught SIGTERM."
-   "\${CATALINA_HOME}/bin/catalina.sh" "stop" "360"
+   echo \"Bootloader caught SIGTERM.\"
+   \"\${CATALINA_HOME}/bin/catalina.sh\" \"stop\" \"360\"
    wait
    finalize
    exit 0
-" 15
+" SIGTERM
 
 "\${CATALINA_HOME}/bin/catalina.sh" "run"
 wait
