@@ -118,7 +118,7 @@ trap "
    wait
    finalize
    exit 0
-" SIGTERM
+" 15
 
 "\${CATALINA_HOME}/bin/catalina.sh" "run"
 wait
