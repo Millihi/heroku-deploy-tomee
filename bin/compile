@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# bin/compile <build-dir> <cache-dir>
 
-# Fail fast
 set -e
 
 # Constants
@@ -13,113 +11,185 @@ BPACK_DIR="$(realpath "$(dirname "$0")/..")"
 BUILD_DIR="$(realpath "$1")"
 CACHE_DIR="$(realpath "$2")"
 
+DERBY_VERSION="10.12.1.1"
+DERBY_HOME="${BUILD_DIR}/derby"
 TOMEE_VERSION="8.0.0"
 TOMEE_HOME="${BUILD_DIR}/tomee"
-JVM_VERSION="1.8"
-JDK_HOME="${BUILD_DIR}/.jdk"
+JRE_VERSION="1.8"
 JRE_HOME="${BUILD_DIR}/jre"
 
 MAVEN_REPO_URL="https://repo1.maven.org/maven2"
 APACHE_REPO_URL="${MAVEN_REPO_URL}/org/apache"
-JVM_BPACK_URL="http://heroku-jvm-common.s3.amazonaws.com/jvm-buildpack-common.tar.gz"
-TOMEE_URL="${APACHE_REPO_URL}/tomee/apache-tomee/${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
-BVAL_CORE_URL="${APACHE_REPO_URL}/bval/bval-core/1.1.2/bval-core-1.1.2.jar"
-BVAL_JSR_URL="${APACHE_REPO_URL}/bval/bval-jsr/1.1.2/bval-jsr-1.1.2.jar"
-PGJDBC_URL="${MAVEN_REPO_URL}/org/postgresql/postgresql/42.2.8/postgresql-42.2.8.jar"
 
+###############################################################################
+#  installJre
+installJre () {
+   local oldPwd JVM_BPACK_URL JDK_HOME
 
+   JVM_BPACK_URL="http://heroku-jvm-common.s3.amazonaws.com/jvm-buildpack-common.tar.gz"
+   JDK_HOME="${BUILD_DIR}/.jdk"
 
+   oldPwd="${PWD}"
+   cd "${BUILD_DIR}"
 
-# Build JVM
-cd "${BUILD_DIR}"
-echo -n "${POINTER} Bundling JVM ${JVM_VERSION}..."
-curl --silent --location "${JVM_BPACK_URL}" | tar xz
-. bin/java
-echo "java.runtime.version=${JVM_VERSION}" > "${BUILD_DIR}/system.properties"
-logger -p user.notice -t "slugc[$$]" "language_pack_java download_jdk"
-LOGGER_FLAGS="${LOGGER_FLAGS} download_jdk"
-javaVersion="$(detect_java_version "${BUILD_DIR}")"
-echo " DONE"
-echo -n "${POINTER} Installing OpenJDK ${javaVersion}..."
-install_java "${BUILD_DIR}" "${javaVersion}"
-jdk_overlay "${BUILD_DIR}"
-if [ ! -d "${JDK_HOME}" ]; then
-   echo " FAIL"
-   echo "${SPACER} JDK not found in [${JDK_HOME}]"
-   exit 1
-fi
-if [ ! -d "${JDK_HOME}/jre" ]; then
-   echo " FAIL"
-   echo "${SPACER} JRE not found in [${JDK_HOME}/jre]"
-   exit 1
-fi
-mv -f "${JDK_HOME}/jre" "${BUILD_DIR}"
-rm -rf "${JDK_HOME}"
-echo " DONE"
+   echo -n "${POINTER} Bundling JRE ${JRE_VERSION}..."
 
+   curl --silent --location "${JVM_BPACK_URL}" | tar xz
+   . bin/java
+   echo "java.runtime.version=${JRE_VERSION}" > "${BUILD_DIR}/system.properties"
+   logger -p user.notice -t "slugc[$$]" "language_pack_java download_jdk"
+   LOGGER_FLAGS="${LOGGER_FLAGS} download_jdk"
+   javaVersion="$(detect_java_version "${BUILD_DIR}")"
+   install_java "${BUILD_DIR}" "${javaVersion}"
+   jdk_overlay "${BUILD_DIR}"
 
+   if [ ! -d "${JDK_HOME}" ]; then
+      echo " FAIL"
+      echo "${SPACER} JDK not found in [${JDK_HOME}]"
+      exit 1
+   fi
 
+   if [ ! -d "${JDK_HOME}/jre" ]; then
+      echo " FAIL"
+      echo "${SPACER} JRE not found in [${JDK_HOME}/jre]"
+      exit 1
+   fi
 
-# Build TomEE server.
-cd "${BUILD_DIR}"
-echo -n "${POINTER} Bundling TomEE version $TOMEE_VERSION"
-curl --silent --location "${TOMEE_URL}" | tar xz
-mv -f "${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}" "${BUILD_DIR}/tomee"
-cp -rf "${BPACK_DIR}/server/"* "${TOMEE_HOME}/"
-chmod +x "${TOMEE_HOME}/bin/setenv.sh"
-cd "${TOMEE_HOME}/lib"
-if [ "${TOMEE_VERSION}" = "8.0.0" ]; then
-   rm -rf "${TOMEE_HOME}/lib/bval-"*
-   curl --silent --remote-name --location "${BVAL_CORE_URL}" &
-   curl --silent --remote-name --location "${BVAL_JSR_URL}" &
-fi
-curl --silent --remote-name --location "${PGJDBC_URL}" &
-wait
-echo " DONE"
+   mv -f "${JDK_HOME}/jre" "${BUILD_DIR}"
+   rm -rf "${JDK_HOME}"
 
+   wait
 
+   echo " DONE"
 
+   cd "${oldPwd}"
+}
 
-# Create admin password
-cd "${BUILD_DIR}"
-echo "${POINTER} Create admin password"
-echo "${SPACER} !!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
-echo -n "${SPACER} Admin password is "
-pv_random="$(dd if=/dev/urandom count=1 2>/dev/null | md5sum | cut -c 1-6)"
-sed -i.bak -e "s/%%PASSWORD%%/${pv_random}/" "${TOMEE_HOME}/conf/tomcat-users.xml"
-echo "${pv_random}"
-echo "${SPACER} !!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
+###############################################################################
+#  installDerbyDatabase
+installDerbyDatabase () {
+   local oldPwd DERBY_URL
 
+   DERBY_URL="http://archive.apache.org/dist/db/derby/db-derby-${DERBY_VERSION}/db-derby-${DERBY_VERSION}-bin.tar.gz"
 
+   oldPwd="${PWD}"
+   cd "${BUILD_DIR}"
 
+   echo -n "${POINTER} Bundling Derby"
 
-# Build boot.sh
-cd "${BUILD_DIR}"
-echo -n "${POINTER} Bundling boot.sh"
-cat >>boot.sh <<EOF
+   curl --silent --location "${DERBY_URL}" | tar xz
+   mv -f "${BUILD_DIR}/db-derby-${DERBY_VERSION}-bin" "${DERBY_HOME}"
+
+   cp -rf "${BPACK_DIR}/database/"* "${DERBY_HOME}/"
+   chmod +x "${DERBY_HOME}/bin/setenv.sh"
+   mkdir -p "${DERBY_HOME}/db"
+
+   wait
+
+   echo " DONE"
+
+   cd "${oldPwd}"
+}
+
+###############################################################################
+#  installTomeeServer
+installTomeeServer () {
+   local oldPwd TOMEE_URL BVAL_CORE_URL BVAL_JSR_URL DERBYCLIENT_URL
+
+   TOMEE_URL="${APACHE_REPO_URL}/tomee/apache-tomee/${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
+   BVAL_CORE_URL="${APACHE_REPO_URL}/bval/bval-core/1.1.2/bval-core-1.1.2.jar"
+   BVAL_JSR_URL="${APACHE_REPO_URL}/bval/bval-jsr/1.1.2/bval-jsr-1.1.2.jar"
+
+   oldPwd="${PWD}"
+   cd "${BUILD_DIR}"
+
+   echo -n "${POINTER} Bundling TomEE version ${TOMEE_VERSION}"
+
+   curl --silent --location "${TOMEE_URL}" | tar xz
+   mv -f "${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}" "${TOMEE_HOME}"
+
+   cp -rf "${BPACK_DIR}/server/"* "${TOMEE_HOME}/"
+   chmod +x "${TOMEE_HOME}/bin/setenv.sh"
+   cd "${TOMEE_HOME}/lib"
+
+   if [ "${TOMEE_VERSION}" = "8.0.0" ]; then
+      rm -rf "${TOMEE_HOME}/lib/bval-"*
+      curl --silent --remote-name --location "${BVAL_CORE_URL}" &
+      curl --silent --remote-name --location "${BVAL_JSR_URL}" &
+   fi
+
+   cp -rf "${DERBY_HOME}/lib/derbyclient.jar" "${TOMEE_HOME}/lib/derbyclient-${DERBY_VERSION}.jar"
+
+   wait
+
+   echo " DONE"
+
+   cd "${oldPwd}"
+}
+
+###############################################################################
+#  createAdminPassword
+createAdminPassword () {
+   local random oldPwd
+
+   oldPwd="${PWD}"
+   cd "${BUILD_DIR}"
+
+   echo "${POINTER} Create admin password"
+   echo -n "${SPACER} Admin password is "
+
+   random="$(dd if=/dev/urandom count=1 2>/dev/null | md5sum | cut -c 1-6)"
+   sed -i.bak -e "s/%%PASSWORD%%/${random}/" "${TOMEE_HOME}/conf/tomcat-users.xml"
+
+   echo "${SPACER} !!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
+   echo "${SPACER} ${random}"
+   echo "${SPACER} !!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
+
+   cd "${oldPwd}"
+}
+
+###############################################################################
+#  createBootloader
+createBootloader () {
+   local oldPwd
+
+   oldPwd="${PWD}"
+   cd "${BUILD_DIR}"
+
+   echo -n "${POINTER} Bundling boot.sh"
+
+   cat >>"boot.sh" <<EOF
 #!/usr/bin/env sh
 
 export JAVA_HOME="\${HOME}/jre"
 export JRE_HOME="\${HOME}/jre"
 export CATALINA_HOME="\${HOME}/tomee"
-export JAVA_OPTS="-Dhttp.port=\${PORT}"
+export DERBY_HOME="\${HOME}/derby"
 
-NAME="\${name:-"\${0##*/}"}"
+NAME="\${NAME:-"\${0##*/}"}"
 CATALINA_CMD="\${CATALINA_HOME}/bin/catalina.sh"
+DERBY_START_CMD="\${DERBY_HOME}/bin/startNetworkServer"
+DERBY_STOP_CMD="\${DERBY_HOME}/bin/stopNetworkServer"
 
-# . "${HOME}/creds/subr.sh"
+# . "\${HOME}/creds/subr.sh"
+. "\${DERBY_HOME}/bin/setenv.sh"
+. "\${DERBY_HOME}/bin/setNetworkServerCP"
 
 main () {
+   "\${DERBY_START_CMD}"
+   wait
    "\${CATALINA_CMD}" "run"
    wait
-   echo "\${NAME}: Worker stoped by itsel... not good, not good..."
+   echo "\${NAME}: Worker stoped by itself... not good, not good..."
    finalize
    exit 0
 }
 
 handleSigTerm () {
    echo "\${NAME}: Bootloader caught SIGTERM."
-   "\${CATALINA_CMD}" "stop" "360"
+   "\${CATALINA_CMD}" "stop" "15"
+   wait
+   "\${DERBY_STOP_CMD}"
    wait
    finalize
    exit 0
@@ -135,14 +205,23 @@ trap "handleSigTerm" TERM
 
 main
 EOF
-if [ ! -f boot.sh ]; then
-   echo " FAIL"
-   exit 1
-fi
-chmod +x boot.sh
-echo " DONE"
 
+   if [ ! -f "boot.sh" ]; then
+      echo " FAIL"
+      exit 1
+   fi
 
+   chmod +x "boot.sh"
 
+   echo " DONE"
+
+   cd "${oldPwd}"
+}
+
+installJre
+installDerbyDatabase
+installTomeeServer
+createAdminPassword
+createBootloader
 
 exit 0
