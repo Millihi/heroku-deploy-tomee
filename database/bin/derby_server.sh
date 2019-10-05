@@ -1,7 +1,7 @@
 #!/bin/sh
 
 NAME="${NAME:-"${0##*/}"}"
-COMMAND="$1"
+COMMAND="$1"; shift
 
 if [ ! -d "${DERBY_HOME}" ]; then
    echo "${NAME}: Error: DERBY_HOME points to a wrong folder."
@@ -49,4 +49,4 @@ esac
 "${JAVA_CMD}" \
    ${DERBY_OPTS} \
    -classpath "${DERBY_CLASSPATH}" \
-   org.apache.derby.drda.NetworkServerControl "${controlCommand}"
+   org.apache.derby.drda.NetworkServerControl "${controlCommand}" "$@"

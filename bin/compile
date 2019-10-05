@@ -172,9 +172,10 @@ JAVA_CMD="\${JAVA_HOME}/bin/java"
 CATALINA_CMD="\${CATALINA_HOME}/bin/catalina.sh"
 DERBY_CMD="\${DERBY_HOME}/bin/derby_server.sh"
 
-# . "\${HOME}/creds/subr.sh"
+. "\${HOME}/bin/backup.subr.sh"
 
 main () {
+   popFromDropbox
    "\${DERBY_CMD}" "start" &
    sleep 1
    "\${CATALINA_CMD}" "run" &
@@ -188,7 +189,7 @@ main () {
 handleShutdown () {
    echo "\${NAME}: Bootloader caught SIGTERM."
    "\${CATALINA_CMD}" "stop" "15"
-   "\${DERBY_CMD}" "stop"
+   "\${DERBY_CMD}" "stop" "-user" "$(getDbUser)" "-password" "$(getDbPassword)" 
    wait
    finalize
    exit 0
