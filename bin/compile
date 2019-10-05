@@ -104,27 +104,36 @@ export JRE_HOME="\${HOME}/jre"
 export CATALINA_HOME="\${HOME}/tomee"
 export JAVA_OPTS="-Dhttp.port=\${PORT}"
 
+NAME="${name:-"${0##*/}"}"
+CATALINA_CMD="\${CATALINA_HOME}/bin/catalina.sh"
+
 # . "${HOME}/creds/subr.sh"
 
+main () {
+   "\${CATALINA_CMD}" "run"
+   wait
+   echo "\${NAME}: Worker stoped by itsel... not good, not good..."
+   finalize
+   exit 0
+}
+
+handleSigTerm () {
+   echo "\${NAME}: Bootloader caught SIGTERM."
+   "\${CATALINA_CMD}" "stop" "360"
+   wait
+   finalize
+   exit 0
+}
+
 finalize () {
-   echo -n "Finalize... "
+   echo -n "\${NAME}: Finalize... "
    sleep 5
    echo "DONE"
 }
 
-trap "
-   echo \"Bootloader caught SIGTERM.\"
-   \"\${CATALINA_HOME}/bin/catalina.sh\" \"stop\" \"360\"
-   wait
-   finalize
-   exit 0
-" SIGTERM
+trap "handleSigTerm" TERM
 
-"\${CATALINA_HOME}/bin/catalina.sh" "run"
-wait
-echo "Worker stoped by itsel... not good, not good..."
-finalize
-exit 0
+main
 EOF
 if [ ! -f boot.sh ]; then
    echo " FAIL"
