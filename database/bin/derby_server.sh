@@ -46,6 +46,7 @@ case "${COMMAND}" in
       ;;
 esac
 
+export CLASSPATH="${DERBY_CLASSPATH}:."
 execLine="exec \"${JAVA_CMD}"\"
 execLine="${execLine} ${DERBY_OPTS}"
 execLine="${execLine} -classpath \"${DERBY_CLASSPATH}\""
