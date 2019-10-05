@@ -107,19 +107,23 @@ export JAVA_OPTS="-Dhttp.port=\${PORT}"
 # . "${HOME}/creds/subr.sh"
 
 finalize () {
-   "\${CATALINA_HOME}/bin/catalina.sh" "stop" "360"
-   wait
-   echo "Shutdown successful."
+   echo -n "Finalize... "
+   sleep 5
+   echo "DONE"
 }
 
 trap "
-   finalize ()
+   echo "Bootloader caught SIGTERM."
+   "\${CATALINA_HOME}/bin/catalina.sh" "stop" "360"
+   wait
+   finalize
    exit 0
-" TERM
+" SIGTERM
 
 "\${CATALINA_HOME}/bin/catalina.sh" "run"
 wait
-echo "Strange: Worker exited by itsel..."
+echo "Worker stoped by itsel... not good, not good..."
+finalize
 exit 0
 EOF
 if [ ! -f boot.sh ]; then
