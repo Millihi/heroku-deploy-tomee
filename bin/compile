@@ -167,18 +167,17 @@ export CATALINA_HOME="\${HOME}/tomee"
 export DERBY_HOME="\${HOME}/derby"
 
 NAME="\${NAME:-"\${0##*/}"}"
+JAVA_CMD="\${JAVA_HOME}/bin/java"
 CATALINA_CMD="\${CATALINA_HOME}/bin/catalina.sh"
-DERBY_START_CMD="\${DERBY_HOME}/bin/startNetworkServer"
-DERBY_STOP_CMD="\${DERBY_HOME}/bin/stopNetworkServer"
+DERBY_CMD="\${DERBY_HOME}/bin/derby_server.sh"
 
 # . "\${HOME}/creds/subr.sh"
-. "\${DERBY_HOME}/bin/setenv.sh"
-. "\${DERBY_HOME}/bin/setNetworkServerCP"
 
 main () {
-   "\${DERBY_START_CMD}"
-   wait
-   "\${CATALINA_CMD}" "run"
+   "\${DERBY_CMD}" "start" &
+   sleep 1
+   "\${CATALINA_CMD}" "run" &
+   sleep 1
    wait
    echo "\${NAME}: Worker stoped by itself... not good, not good..."
    finalize
@@ -187,9 +186,9 @@ main () {
 
 handleSigTerm () {
    echo "\${NAME}: Bootloader caught SIGTERM."
-   "\${CATALINA_CMD}" "stop" "15"
+   "\${CATALINA_CMD}" "stop" "15" &
    wait
-   "\${DERBY_STOP_CMD}"
+   "\${DERBY_CMD}" "stop" &
    wait
    finalize
    exit 0
