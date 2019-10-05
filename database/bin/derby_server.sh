@@ -46,8 +46,7 @@ case "${COMMAND}" in
       ;;
 esac
 
-export CLASSPATH="${DERBY_CLASSPATH}"
-eval exec "\"${JAVA_CMD}\"" \
+"${JAVA_CMD}" \
    ${DERBY_OPTS} \
-   -classpath "\"${CLASSPATH}\"" \
-   org.apache.derby.drda.NetworkServerControl "${controlCommand}" "$@"
+   -classpath "${DERBY_CLASSPATH}" \
+   org.apache.derby.drda.NetworkServerControl "${controlCommand}"
