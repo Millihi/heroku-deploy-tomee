@@ -1,6 +1,5 @@
 #!/bin/sh
 
-JAVA_OPTS=""
 JAVA_OPTS="${JAVA_OPTS} -Xms32m -Xmx256m -XX:MaxMetaspaceSize=64m"
 JAVA_OPTS="${JAVA_OPTS} -XX:+CMSClassUnloadingEnabled"
 JAVA_OPTS="${JAVA_OPTS} -XX:+UseCodeCacheFlushing"

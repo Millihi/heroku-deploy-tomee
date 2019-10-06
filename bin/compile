@@ -172,6 +172,7 @@ JAVA_CMD="\${JAVA_HOME}/bin/java"
 CATALINA_CMD="\${CATALINA_HOME}/bin/catalina.sh"
 DERBY_CMD="\${DERBY_HOME}/bin/derby_server.sh"
 
+. "\${HOME}/bin/setenv.sh"
 . "\${HOME}/bin/backup.subr.sh"
 
 main () {
