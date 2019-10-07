@@ -126,7 +126,7 @@ isStateLocked () {
       -X POST https://content.dropboxapi.com/2/files/download \
       --header "$(getAuthHeader)" \
       --header "Dropbox-API-Arg: { \"path\": \"${LOCK_FILE_PATH}\" }" | \
-      sed -ne 's/error_summary/p')"
+      sed -ne '/error_summary/p')"
 
    if [ -z "${result}" ]; then
       echo -n "true"
