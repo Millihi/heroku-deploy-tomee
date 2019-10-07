@@ -1,2 +1,2 @@
 # heroku-deploy-tomee
-The gateway for deploing wars to app-server on heroku.
+Buildpack for Heroku that bundles JRE, JavaDB, TomEE and some useful scripts.
