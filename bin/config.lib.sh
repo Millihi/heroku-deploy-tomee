@@ -1,6 +1,5 @@
 #!/bin/sh
 
-DEBUG_BUILD="true"
 DERBY_VERSION="10.14.2.0"
 DERBY_DIR="derby"
 TOMEE_VERSION="8.0.0"

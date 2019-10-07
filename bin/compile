@@ -3,8 +3,9 @@
 set -e
 
 # Constants
-POINTER="-->"
-SPACER="   "
+NAME="${NAME:-"${0##*/}"}"
+POINTER="----->"
+SPACER="      "
 
 # Config
 BPACK_DIR="$(realpath "$(dirname "$0")/..")"
@@ -25,7 +26,7 @@ installJre () {
    oldPwd="${PWD}"
    cd "${BUILD_DIR}"
 
-   echo -n "${POINTER} Bundling JRE ${JRE_VERSION}..."
+   echo -n "${POINTER} Bundling JRE ${JRE_VERSION} to [${JRE_DIR}]"
 
    curl --silent --location "${JVM_BPACK_URL}" | tar xz
    . bin/java
@@ -68,7 +69,7 @@ installDerbyDatabase () {
    oldPwd="${PWD}"
    cd "${BUILD_DIR}"
 
-   echo -n "${POINTER} Bundling Derby"
+   echo -n "${POINTER} Bundling Derby to [${DERBY_DIR}]"
 
    curl --silent --location "${DERBY_URL}" | tar xz
    mv -f "${BUILD_DIR}/db-derby-${DERBY_VERSION}-bin" "${DERBY_HOME}"
@@ -97,7 +98,7 @@ installTomeeServer () {
    oldPwd="${PWD}"
    cd "${BUILD_DIR}"
 
-   echo -n "${POINTER} Bundling TomEE version ${TOMEE_VERSION}"
+   echo -n "${POINTER} Bundling TomEE version ${TOMEE_VERSION} to [${TOMEE_DIR}]"
 
    curl --silent --location "${TOMEE_URL}" | tar xz
    mv -f "${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}" "${TOMEE_HOME}"
