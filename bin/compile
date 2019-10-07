@@ -125,17 +125,16 @@ installTomeeServer () {
 ###############################################################################
 #  installScripts
 installScripts () {
-   local oldPwd SCRIPTS_HOME
+   local oldPwd
 
    oldPwd="${PWD}"
    cd "${BUILD_DIR}"
 
    echo -n "${POINTER} Bundling scripts to [${SCRIPTS_DIR}]"
 
-   SCRIPTS_HOME="${BUILD_DIR}/${SCRIPTS_DIR}"
    mkdir -p "${SCRIPTS_HOME}"
    cp -rf "${BPACK_DIR}/scripts/"*.sh "${SCRIPTS_HOME}"
-   chmod +x "${SCRIPTS_HOME}"*.sh
+   chmod +x "${SCRIPTS_HOME}/"*.sh
 
    echo " DONE"
 
@@ -250,12 +249,15 @@ if [ -f "${BPACK_CONFIG_LIB}" -a  -r "${BPACK_CONFIG_LIB}" ]; then
 fi
 
 DERBY_VERSION="${DERBY_VERSION:-10.14.2.0}"
-DERBY_HOME="${BUILD_DIR}/${DERBY_DIR:-derby}"
+DERBY_DIR="${DERBY_DIR:-derby}"
+DERBY_HOME="${BUILD_DIR}/${DERBY_DIR}"
 TOMEE_VERSION="${TOMEE_VERSION:-8.0.0}"
-TOMEE_HOME="${BUILD_DIR}/${TOMEE_DIR:-tomee}"
+TOMEE_DIR="${TOMEE_DIR:-tomee}"
+TOMEE_HOME="${BUILD_DIR}/${TOMEE_DIR}"
 JRE_VERSION="${JRE_VERSION:-1.8}"
 JRE_HOME="${BUILD_DIR}/${JRE_DIR:-jre}"
 SCRIPTS_DIR="${SCRIPTS_DIR:-bin}"
+SCRIPTS_HOME="${BUILD_DIR}/${SCRIPTS_DIR}"
 
 if [ -n "${DEBUG_BUILD}" ]; then
    echo "${POINTER} Build debug enabled."
