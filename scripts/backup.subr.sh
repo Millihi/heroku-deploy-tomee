@@ -39,7 +39,7 @@ obtainState () {
          attempts=$(($attempts + 1))
       fi
 
-      sleep waitTime
+      sleep $waitTime
    done
 
    loadState
