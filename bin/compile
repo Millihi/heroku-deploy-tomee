@@ -3,8 +3,8 @@
 set -e
 
 # Constants
-POINTER="----->"
-SPACER="      "
+POINTER="-->"
+SPACER="   "
 
 # Config
 BPACK_DIR="$(realpath "$(dirname "$0")/..")"
@@ -220,6 +220,17 @@ EOF
 
    cd "${oldPwd}"
 }
+
+if [ -n "${DEBUG_BUILD}" ]; then
+   echo "${POINTER} Build debug enabled."
+   echo "${SPACER} Environment vars are:"
+   env | sed -e "s/^/${SPACER}${SPACER}/"
+fi
+
+if [ -n "${TRACE_BUILD}" ]; then
+   echo "Tracing build enabled."
+   set -x
+fi
 
 installJre
 installDerbyDatabase
