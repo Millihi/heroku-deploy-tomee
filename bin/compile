@@ -123,6 +123,26 @@ installTomeeServer () {
 }
 
 ###############################################################################
+#  installScripts
+installScripts () {
+   local oldPwd SCRIPTS_HOME
+
+   oldPwd="${PWD}"
+   cd "${BUILD_DIR}"
+
+   echo -n "${POINTER} Bundling scripts to [${SCRIPTS_DIR}]"
+
+   SCRIPTS_HOME="${BUILD_DIR}/${SCRIPTS_DIR}"
+   mkdir -p "${SCRIPTS_HOME}"
+   cp -rf "${BPACK_DIR}/scripts/"*.sh "${SCRIPTS_HOME}"
+   chmod +x "${SCRIPTS_HOME}"*.sh
+
+   echo " DONE"
+
+   cd "${oldPwd}"
+}
+
+###############################################################################
 #  createAdminPassword
 createAdminPassword () {
    local random oldPwd
@@ -156,24 +176,30 @@ createBootloader () {
    cat >>"boot.sh" <<EOF
 #!/usr/bin/env sh
 
+export SCRIPTS_HOME="\${HOME}/${SCRIPTS_DIR}"
 export JAVA_HOME="\${HOME}/${JRE_DIR}"
 export JRE_HOME="\${HOME}/${JRE_DIR}"
 export CATALINA_HOME="\${HOME}/${TOMEE_DIR}"
 export DERBY_HOME="\${HOME}/${DERBY_DIR}"
+export PATH="\${PATH}:\${SCRIPTS_HOME}"
 
 NAME="\${NAME:-"\${0##*/}"}"
 JAVA_CMD="\${JAVA_HOME}/bin/java"
 CATALINA_CMD="\${CATALINA_HOME}/bin/catalina.sh"
 DERBY_CMD="\${DERBY_HOME}/bin/derby_server.sh"
 
-. "\${HOME}/bin/setenv.sh"
-. "\${HOME}/bin/backup.subr.sh"
+. "\${SCRIPTS_HOME}/setenv.sh"
+. "\${SCRIPTS_HOME}/private.subr.sh"
+. "\${SCRIPTS_HOME}/backup.subr.sh"
+. "\${SCRIPTS_HOME}/pinger.subr.sh"
 
 main () {
-   popFromDropbox
+   obtainState
    "\${DERBY_CMD}" "start" &
    sleep 1
    "\${CATALINA_CMD}" "run" &
+   sleep 1
+   startPinger
    sleep 1
    wait
    echo "\${NAME}: Worker stoped by itself... not good, not good..."
@@ -183,6 +209,7 @@ main () {
 
 handleShutdown () {
    echo "\${NAME}: Bootloader caught SIGTERM."
+   stopPinger
    "\${CATALINA_CMD}" "stop" "15"
    "\${DERBY_CMD}" "stop" \
       "-user" "\$(getDbUser)" \
@@ -194,7 +221,7 @@ handleShutdown () {
 
 finalize () {
    echo -n "\${NAME}: Finalize... "
-   pushToDropbox
+   releaseState
    echo "DONE"
 }
 
@@ -228,6 +255,7 @@ TOMEE_VERSION="${TOMEE_VERSION:-8.0.0}"
 TOMEE_HOME="${BUILD_DIR}/${TOMEE_DIR:-tomee}"
 JRE_VERSION="${JRE_VERSION:-1.8}"
 JRE_HOME="${BUILD_DIR}/${JRE_DIR:-jre}"
+SCRIPTS_DIR="${SCRIPTS_DIR:-bin}"
 
 if [ -n "${DEBUG_BUILD}" ]; then
    echo "${POINTER} Build debug enabled."
@@ -243,6 +271,7 @@ fi
 installJre
 installDerbyDatabase
 installTomeeServer
+installScripts
 createAdminPassword
 createBootloader
 

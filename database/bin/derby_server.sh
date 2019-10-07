@@ -1,7 +1,7 @@
 #!/bin/sh
 
 NAME="${NAME:-"${0##*/}"}"
-COMMAND="$1"; shift
+COMMAND="$1";
 
 if [ ! -d "${DERBY_HOME}" ]; then
    echo "${NAME}: Error: DERBY_HOME points to a wrong folder."
@@ -32,6 +32,13 @@ fi
 cd "${DERBY_HOME}"
 
 controlCommand=""
+
+if [ -z "${COMMAND}" ]; then
+   echo "${NAME}: Error: No command given."
+   exit 1
+fi
+
+shift
 
 case "${COMMAND}" in
    [Ss][Tt][Aa][Rr][Tt])
