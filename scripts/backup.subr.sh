@@ -112,7 +112,7 @@ unlockState () {
       -X POST https://api.dropboxapi.com/2/files/delete_v2 \
       --header "$(getAuthHeader)" \
       --header "Content-Type: application/json" \
-      --data "Dropbox-API-Arg: { \"path\": \"${LOCK_FILE_PATH}\" }"
+      --data "{ \"path\": \"${LOCK_FILE_PATH}\" }"
 }
 
 isStateLocked () {
