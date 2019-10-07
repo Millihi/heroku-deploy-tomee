@@ -2,8 +2,8 @@
 
 NAME="${NAME:-"${0##*/}"}"
 
-if [ ! -d "${TOMEE_HOME}" ]; then
-   echo "${NAME}: Error: TOMEE_HOME isn't set."
+if [ ! -d "${CATALINA_HOME}" ]; then
+   echo "${NAME}: Error: CATALINA_HOME isn't set."
    exit 1
 fi
 
