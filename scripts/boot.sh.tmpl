@@ -9,6 +9,10 @@ export CATALINA_HOME="${HOME}/$<<TOMEE_DIR>>"
 export DERBY_HOME="${HOME}/$<<DERBY_DIR>>"
 export PATH="${PATH}:${SCRIPTS_HOME}"
 
+###############################################################################
+##  Package section                                                          ##
+###############################################################################
+
 __boot_JAVA_CMD="${JAVA_HOME}/bin/java"
 __boot_CATALINA_CMD="${CATALINA_HOME}/bin/catalina.sh"
 __boot_DERBY_CMD="${DERBY_HOME}/bin/derby_server.sh"
@@ -22,6 +26,10 @@ SAVE_STATE="${SAVE_STATE:-""}"
 PREVENT_SLEEP="${PREVENT_SLEEP:-""}"
 
 trap "__boot_handleShutdown" INT TERM
+
+###############################################################################
+##  Public section                                                           ##
+###############################################################################
 
 boot_main () {
    if [ "${SAVE_STATE}" ]
@@ -49,6 +57,10 @@ boot_main () {
 
    exit 0
 }
+
+###############################################################################
+##  Private section                                                          ##
+###############################################################################
 
 __boot_handleShutdown () {
    echo "${NAME}: Bootloader is requested to shutdown."
@@ -81,6 +93,10 @@ __boot_finalize () {
 
    echo "DONE"
 }
+
+###############################################################################
+##  Body section                                                             ##
+###############################################################################
 
 boot_main
 

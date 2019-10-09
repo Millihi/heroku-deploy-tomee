@@ -2,6 +2,10 @@
 
 NAME="${NAME:-"${0##*/}"}"
 
+###############################################################################
+##  Package section                                                          ##
+###############################################################################
+
 __backup_MAX_WAIT_TIME="360"
 __backup_MAX_RETRIES="100"
 
@@ -11,37 +15,49 @@ __backup_LOCK_FILE_PATH="/JavaDB_Backups/state.lock"
 __backup_WEBAPPS_DIR="${CATALINA_HOME##*/}/webapps"
 __backup_DBS_DIR="${DERBY_HOME##*/}/db"
 
+__backup_obtained=""
+
+###############################################################################
+##  Public section                                                           ##
+###############################################################################
+
 backup_obtain () {
    local - waitTime attempts
 
    set +e
 
-   echo "${NAME}: An attemp to obtaining backup is started."
+   if [ "${__backup_obtained}" ]
+   then
+      echo "${NAME}: The backup is already obtained, do nothing."
+   else
+      echo "${NAME}: An attemp to obtaining backup is started."
 
-   waitTime=1
-   attempts=0
+      waitTime=1
+      attempts=0
 
-   while [ "$(__backup_isLocked)" ]
-   do
-      echo "${NAME}: State is locked, waiting."
+      while [ "$(__backup_isLocked)" ]
+      do
+         echo "${NAME}: State is locked, waiting."
 
-      if [ $attempts -ge $waitTime ]
-      then
-         attempts=0
-
-         if [ $((2 * $waitTime)) -lt $__backup_MAX_WAIT_TIME ]
+         if [ $attempts -ge $waitTime ]
          then
-            waitTime=$((2 * $waitTime))
+            attempts=0
+
+            if [ $((2 * $waitTime)) -lt $__backup_MAX_WAIT_TIME ]
+            then
+               waitTime=$((2 * $waitTime))
+            fi
+         else
+            attempts=$(($attempts + 1))
          fi
-      else
-         attempts=$(($attempts + 1))
-      fi
 
-      sleep $waitTime
-   done
+         sleep $waitTime
+      done
 
-   __backup_load
-   __backup_lock
+      __backup_load &&
+      __backup_lock &&
+      __backup_obtained="true"
+   fi
 }
 
 backup_release () {
@@ -49,11 +65,20 @@ backup_release () {
 
    set +e
 
-   echo "${NAME}: An attemp to releasing backup is started."
-
-   __backup_save
-   __backup_unlock
+   if [ "${__backup_obtained}" ]
+   then
+      echo "${NAME}: An attemp to releasing backup is started."
+      __backup_save &&
+      __backup_unlock &&
+      __backup_obtained=""
+   else
+      echo "${NAME}: No backup obtained, nothing to release."
+   fi
 }
+
+###############################################################################
+##  Private section                                                          ##
+###############################################################################
 
 __backup_save () {
    local -
@@ -176,5 +201,9 @@ __backup_checkIntegrity () {
       exit 1
    fi
 }
+
+###############################################################################
+##  Body section                                                             ##
+###############################################################################
 
 __backup_checkIntegrity
