@@ -6,7 +6,7 @@ DERBY_DIR="derby"
 TOMEE_VERSION="8.0.0"
 TOMEE_DIR="tomee"
 
-JRE_VERSION="zulu-1.8.0_222"
+JRE_VERSION="1.8"
 JRE_DIR="jre"
 
 SCRIPTS_DIR="bin"
