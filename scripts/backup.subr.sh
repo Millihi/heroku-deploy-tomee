@@ -125,7 +125,7 @@ __backup_unlock () {
 __backup_isLocked () {
    local - result
 
-   set +e -x
+   set +e
 
    if [ "$(__backup_getLockState)" ]
    then
@@ -138,7 +138,7 @@ __backup_isLocked () {
 __backup_getLockState () {
    local -
 
-   set +e -x
+   set +e
 
    curl \
       --silent \
