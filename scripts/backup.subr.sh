@@ -127,7 +127,7 @@ __backup_isLocked () {
 
    set +e
 
-   if [ -n "$(__backup_getLockState)" ]
+   if [ "$(__backup_getLockState)" ]
    then
       echo -n ""
    else
@@ -140,15 +140,17 @@ __backup_getLockState () {
 
    set +e
 
-   curl \
-      --silent \
-      --retry "${__backup_MAX_RETRIES}" \
-      -X POST https://content.dropboxapi.com/2/files/download \
-      --header "$(__backup_getAuthHeader)" \
-      --header "Dropbox-API-Arg: { \"path\": \"${__backup_LOCK_FILE_PATH}\" }" \
-      2 > /dev/null \
-   | sed \
-      -ne '/error_summary.\{1,\}not_found/p'
+   echo -n "$( \
+      curl \
+         --silent \
+         --retry "${__backup_MAX_RETRIES}" \
+         -X POST https://content.dropboxapi.com/2/files/download \
+         --header "$(__backup_getAuthHeader)" \
+         --header "Dropbox-API-Arg: { \"path\": \"${__backup_LOCK_FILE_PATH}\" }" \
+         2 > /dev/null \
+      | sed \
+         -ne '/error_summary.\{1,\}not_found/p' \
+   )"
 }
 
 __backup_getTimestamp () {
