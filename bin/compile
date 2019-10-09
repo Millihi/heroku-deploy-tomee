@@ -175,7 +175,7 @@ createBootloader () {
 
    echo -n "${POINTER} Bundling boot.sh"
 
-   cat "${SCRIPTS_HOME}/boot.sh.tmpl" \
+   cat "${BPACK_DIR}/scripts/boot.sh.tmpl" \
    | sed -e 's/\$<<SCRIPTS_DIR>>/scripts/' \
    | sed -e 's/\$<<JRE_DIR>>/jre/' \
    | sed -e 's/\$<<TOMEE_DIR>>/tomee/' \
