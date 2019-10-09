@@ -2,67 +2,72 @@
 
 NAME="${NAME:-"${0##*/}"}"
 
-PING_DELAY="$((15 * 60))"
+__pinger_PING_DELAY="$((15 * 60))"
 
-PINGER_JOB_ID=""
+__pinger_JOB_ID=""
 
-getPingerJobId () {
-   echo -n "${PINGER_JOB_ID}"
+pinger_getJobId () {
+   echo -n "${__pinger_JOB_ID}"
 }
 
-isPingerRunning () {
-   if [ -n "${PINGER_JOB_ID}" ]; then
+pinger_isRunning () {
+   if [ "${__pinger_JOB_ID}" ]
+   then
       echo -n "true"
    else
       echo -n ""
    fi
 }
 
-startPinger () {
+pinger_start () {
    local -
 
    set +e
 
-   if [ -z "${PINGER_JOB_ID}" ]; then
-      pingerProcess &
-      PINGER_JOB_ID="$!"
-      echo "${NAME}: Starting Pinger at ${PINGER_JOB_ID}"
+   if [ -z "${__pinger_JOB_ID}" ]
+   then
+      __pinger_process &
+      __pinger_JOB_ID="$!"
+      echo "${NAME}: Starting Pinger at ${__pinger_JOB_ID}"
    else
-      echo "${NAME}: Pinger process ${PINGER_JOB_ID} already running"
+      echo "${NAME}: Pinger process ${__pinger_JOB_ID} already running"
    fi
 }
 
-stopPinger () {
+pinger_stop () {
    local -
 
    set +e
 
-   if [ -n "${PINGER_JOB_ID}" ]; then
-      echo "${NAME}: Killing Pinger job ${PINGER_JOB_ID}"
-      kill "${PINGER_JOB_ID}"
-      PINGER_JOB_ID=""
+   if [ "${__pinger_JOB_ID}" ]
+   then
+      echo "${NAME}: Killing Pinger job ${__pinger_JOB_ID}"
+      kill "${__pinger_JOB_ID}" 2>&1 >/dev/null
+      __pinger_JOB_ID=""
    else
       echo "${NAME}: No Pinger process found"
    fi
 }
 
-pingerProcess () {
+__pinger_process () {
    local -
 
-   set +x
+   set +e
 
-   while true; do
-      echo "${name}: Ping host ${APP_HOST}"
-      curl --silent -X GET "https://${APP_HOST}/" > /dev/null
-      sleep "${PING_DELAY}"
+   while true
+   do
+      echo "${NAME}: Ping host ${APP_HOST}"
+      curl --silent -X GET "https://${APP_HOST}/" 2>&1 > /dev/null
+      sleep "${__pinger_PING_DELAY}"
    done
 }
 
-checkIntegrity () {
-   if [ -z "${APP_HOST}" ]; then
+__pinger_checkIntegrity () {
+   if [ -z "${APP_HOST}" ]
+   then
       echo "${NAME}: Error: APP_HOST isn't set."
       exit 1
    fi
 }
 
-checkIntegrity
+__pinger_checkIntegrity

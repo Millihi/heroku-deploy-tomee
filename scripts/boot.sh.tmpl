@@ -1,0 +1,87 @@
+#!/usr/bin/env sh
+
+NAME="${NAME:-"${0##*/}"}"
+
+export SCRIPTS_HOME="${HOME}/$<<SCRIPTS_DIR>>"
+export JAVA_HOME="${HOME}/$<<JRE_DIR>>"
+export JRE_HOME="${HOME}/$<<JRE_DIR>>"
+export CATALINA_HOME="${HOME}/$<<TOMEE_DIR>>"
+export DERBY_HOME="${HOME}/$<<DERBY_DIR>>"
+export PATH="${PATH}:${SCRIPTS_HOME}"
+
+__boot_JAVA_CMD="${JAVA_HOME}/bin/java"
+__boot_CATALINA_CMD="${CATALINA_HOME}/bin/catalina.sh"
+__boot_DERBY_CMD="${DERBY_HOME}/bin/derby_server.sh"
+
+. "${SCRIPTS_HOME}/setenv.sh"
+. "${SCRIPTS_HOME}/private.subr.sh"
+. "${SCRIPTS_HOME}/backup.subr.sh"
+. "${SCRIPTS_HOME}/pinger.subr.sh"
+
+SAVE_STATE="${SAVE_STATE:-""}"
+PREVENT_SLEEP="${PREVENT_SLEEP:-""}"
+
+trap "boot_handleShutdown" INT TERM
+
+boot_main () {
+   if [ "${SAVE_STATE}" ]
+   then
+      backup_obtain
+   fi
+
+   "${__boot_DERBY_CMD}" "start" &
+   sleep 1
+
+   "${__boot_CATALINA_CMD}" "run" &
+   sleep 1
+
+   if [ "${PREVENT_SLEEP}" ]
+   then
+      pinger_start
+      sleep 1
+   fi
+
+   wait
+
+   echo "${NAME}: Worker stoped by itself... not good, not good..."
+
+   boot_finalize
+
+   exit 0
+}
+
+boot_handleShutdown () {
+   echo "${NAME}: Bootloader is requested to shutdown."
+
+   if [ "${PREVENT_SLEEP}" ]
+   then
+      pinger_stop
+   fi
+
+   "${__boot_CATALINA_CMD}" "stop" "15"
+
+   "${__boot_DERBY_CMD}" "stop" \
+      "-user" "$(getDbUser)" \
+      "-password" "$(getDbPassword)" 
+
+   wait
+
+   boot_finalize
+
+   exit 0
+}
+
+boot_finalize () {
+   echo -n "${NAME}: Finalize... "
+
+   if [ "${SAVE_STATE}" ]
+   then
+      backup_release
+   fi
+
+   echo "DONE"
+}
+
+boot_main
+
+exit 0

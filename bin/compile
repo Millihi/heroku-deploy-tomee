@@ -37,13 +37,15 @@ installJre () {
    install_java "${BUILD_DIR}" "${javaVersion}"
    jdk_overlay "${BUILD_DIR}"
 
-   if [ ! -d "${JDK_HOME}" ]; then
+   if [ ! -d "${JDK_HOME}" ]
+   then
       echo " FAIL"
       echo "${SPACER} JDK not found in [${JDK_HOME}]"
       exit 1
    fi
 
-   if [ ! -d "${JDK_HOME}/jre" ]; then
+   if [ ! -d "${JDK_HOME}/jre" ]
+   then
       echo " FAIL"
       echo "${SPACER} JRE not found in [${JDK_HOME}/jre]"
       exit 1
@@ -107,7 +109,8 @@ installTomeeServer () {
    chmod +x "${TOMEE_HOME}/bin/setenv.sh"
    cd "${TOMEE_HOME}/lib"
 
-   if [ "${TOMEE_VERSION}" = "8.0.0" ]; then
+   if [ "${TOMEE_VERSION}" = "8.0.0" ]
+   then
       rm -rf "${TOMEE_HOME}/lib/bval-"*
       curl --silent --remote-name --location "${BVAL_CORE_URL}" &
       curl --silent --remote-name --location "${BVAL_JSR_URL}" &
@@ -172,64 +175,15 @@ createBootloader () {
 
    echo -n "${POINTER} Bundling boot.sh"
 
-   cat >>"boot.sh" <<EOF
-#!/usr/bin/env sh
+   cat "${SCRIPTS_HOME}/boot.sh.tmpl" \
+   | sed -e 's/\$<<SCRIPTS_DIR>>/scripts/' \
+   | sed -e 's/\$<<JRE_DIR>>/jre/' \
+   | sed -e 's/\$<<TOMEE_DIR>>/tomee/' \
+   | sed -e 's/\$<<DERBY_DIR>>/derby/' \
+   > "boot.sh"
 
-export SCRIPTS_HOME="\${HOME}/${SCRIPTS_DIR}"
-export JAVA_HOME="\${HOME}/${JRE_DIR}"
-export JRE_HOME="\${HOME}/${JRE_DIR}"
-export CATALINA_HOME="\${HOME}/${TOMEE_DIR}"
-export DERBY_HOME="\${HOME}/${DERBY_DIR}"
-export PATH="\${PATH}:\${SCRIPTS_HOME}"
-
-NAME="\${NAME:-"\${0##*/}"}"
-JAVA_CMD="\${JAVA_HOME}/bin/java"
-CATALINA_CMD="\${CATALINA_HOME}/bin/catalina.sh"
-DERBY_CMD="\${DERBY_HOME}/bin/derby_server.sh"
-
-. "\${SCRIPTS_HOME}/setenv.sh"
-. "\${SCRIPTS_HOME}/private.subr.sh"
-. "\${SCRIPTS_HOME}/backup.subr.sh"
-. "\${SCRIPTS_HOME}/pinger.subr.sh"
-
-main () {
-   obtainState
-   "\${DERBY_CMD}" "start" &
-   sleep 1
-   "\${CATALINA_CMD}" "run" &
-   sleep 1
-   startPinger
-   sleep 1
-   wait
-   echo "\${NAME}: Worker stoped by itself... not good, not good..."
-   finalize
-   exit 0
-}
-
-handleShutdown () {
-   echo "\${NAME}: Bootloader caught SIGTERM."
-   stopPinger
-   "\${CATALINA_CMD}" "stop" "15"
-   "\${DERBY_CMD}" "stop" \
-      "-user" "\$(getDbUser)" \
-      "-password" "\$(getDbPassword)" 
-   wait
-   finalize
-   exit 0
-}
-
-finalize () {
-   echo -n "\${NAME}: Finalize... "
-   releaseState
-   echo "DONE"
-}
-
-trap "handleShutdown" INT TERM
-
-main
-EOF
-
-   if [ ! -f "boot.sh" ]; then
+   if [ ! -f "boot.sh" ]
+   then
       echo " FAIL"
       exit 1
    fi
@@ -241,31 +195,43 @@ EOF
    cd "${oldPwd}"
 }
 
-BPACK_CONFIG_LIB="${BPACK_DIR}/bin/config.lib.sh"
+setUpEnvironment () {
+   DERBY_VERSION="${DERBY_VERSION:-10.14.2.0}"
+   DERBY_DIR="${DERBY_DIR:-derby}"
+   DERBY_HOME="${BUILD_DIR}/${DERBY_DIR}"
 
-if [ -f "${BPACK_CONFIG_LIB}" -a  -r "${BPACK_CONFIG_LIB}" ]; then
-   echo "${NAME}: Found config in [${BPACK_CONFIG_LIB}]"
+   TOMEE_VERSION="${TOMEE_VERSION:-8.0.0}"
+   TOMEE_DIR="${TOMEE_DIR:-tomee}"
+   TOMEE_HOME="${BUILD_DIR}/${TOMEE_DIR}"
+
+   JRE_VERSION="${JRE_VERSION:-1.8}"
+   JRE_DIR="${JRE_DIR:-jre}"
+   JRE_HOME="${BUILD_DIR}/${JRE_DIR}"
+
+   SCRIPTS_DIR="${SCRIPTS_DIR:-bin}"
+   SCRIPTS_HOME="${BUILD_DIR}/${SCRIPTS_DIR}"
+}
+
+BPACK_CONFIG="bin/config.lib.sh"
+BPACK_CONFIG_LIB="${BPACK_DIR}/${BPACK_CONFIG}"
+
+if [ -f "${BPACK_CONFIG_LIB}" -a -r "${BPACK_CONFIG_LIB}" ]
+then
+   echo "${POINTER} Found config [${BPACK_CONFIG}]"
    . "${BPACK_CONFIG_LIB}"
 fi
 
-DERBY_VERSION="${DERBY_VERSION:-10.14.2.0}"
-DERBY_DIR="${DERBY_DIR:-derby}"
-DERBY_HOME="${BUILD_DIR}/${DERBY_DIR}"
-TOMEE_VERSION="${TOMEE_VERSION:-8.0.0}"
-TOMEE_DIR="${TOMEE_DIR:-tomee}"
-TOMEE_HOME="${BUILD_DIR}/${TOMEE_DIR}"
-JRE_VERSION="${JRE_VERSION:-1.8}"
-JRE_HOME="${BUILD_DIR}/${JRE_DIR:-jre}"
-SCRIPTS_DIR="${SCRIPTS_DIR:-bin}"
-SCRIPTS_HOME="${BUILD_DIR}/${SCRIPTS_DIR}"
+setUpEnvironment
 
-if [ -n "${DEBUG_BUILD}" ]; then
+if [ "${DEBUG_BUILD}" ]
+then
    echo "${POINTER} Build debug enabled."
    echo "${SPACER} Environment vars are:"
    env | sed -e "s/^/${SPACER}${SPACER}/"
 fi
 
-if [ -n "${TRACE_BUILD}" ]; then
+if [ "${TRACE_BUILD}" ]
+then
    echo "Tracing build enabled."
    set -x
 fi
