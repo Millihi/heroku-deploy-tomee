@@ -172,7 +172,7 @@ __backup_getAuthHeader () {
 }
 
 __backup_getLogsTarFilePath () {
-   echo -n "/JavaDB_Backups/logs-$(__backup_getTimestamp ()).tar"
+   echo -n "/JavaDB_Backups/logs-$(__backup_getTimestamp).tar"
 }
 
 __backup_checkIntegrity () {
