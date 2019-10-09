@@ -10,7 +10,7 @@ __backup_LOCK_FILE_PATH="/JavaDB_Backups/state.lock"
 
 __backup_WEBAPPS_DIR="${CATALINA_HOME##*/}/webapps"
 __backup_DBS_DIR="${DERBY_HOME##*/}/db"
-__backup_LOGS_DIR="${DERBY_HOME##*/}/logs"
+__backup_LOGS_DIR="${HOME}/logs"
 
 backup_obtain () {
    local - waitTime attempts
