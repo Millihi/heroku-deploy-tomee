@@ -127,7 +127,7 @@ __backup_isLocked () {
 
    set +e
 
-   if [ "$(__backup_getLockState)" ]
+   if [ -n "$(__backup_getLockState)" ]
    then
       echo -n ""
    else
@@ -148,7 +148,7 @@ __backup_getLockState () {
       --header "Dropbox-API-Arg: { \"path\": \"${__backup_LOCK_FILE_PATH}\" }" \
       2 > /dev/null \
    | sed \
-      -ne '/error_summary/p'
+      -ne '/error_summary.\{1,\}not_found/p'
 }
 
 __backup_getTimestamp () {
