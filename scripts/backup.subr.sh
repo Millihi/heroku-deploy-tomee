@@ -147,7 +147,7 @@ __backup_getLockState () {
       --header "$(__backup_getAuthHeader)" \
       --header "Dropbox-API-Arg: { \"path\": \"${__backup_LOCK_FILE_PATH}\" }" \
    | sed \
-      -ne '/error_summary.\{1,\}not_found/p' \
+      -ne '/error_summary.\{1,\}not_found/p'
 }
 
 __backup_getTimestamp () {
