@@ -3,7 +3,6 @@
 NAME="${NAME:-"${0##*/}"}"
 
 export SCRIPTS_HOME="${HOME}/$<<SCRIPTS_DIR>>"
-export LOGS_HOME="${HOME}/logs"
 export JAVA_HOME="${HOME}/$<<JRE_DIR>>"
 export JRE_HOME="${HOME}/$<<JRE_DIR>>"
 export CATALINA_HOME="${HOME}/$<<TOMEE_DIR>>"
@@ -22,20 +21,18 @@ __boot_DERBY_CMD="${DERBY_HOME}/bin/derby_server.sh"
 SAVE_STATE="${SAVE_STATE:-""}"
 PREVENT_SLEEP="${PREVENT_SLEEP:-""}"
 
-trap "boot_handleShutdown" INT TERM
+trap "__boot_handleShutdown" INT TERM
 
 boot_main () {
-   mkdir -p "${LOGS_HOME}"
-
    if [ "${SAVE_STATE}" ]
    then
       backup_obtain
    fi
 
-   "${__boot_DERBY_CMD}" "start" 2>&1 >"${LOGS_HOME}/derby.log" &
+   "${__boot_DERBY_CMD}" "start" &
    sleep 1
 
-   "${__boot_CATALINA_CMD}" "run" 2>&1 >"${LOGS_HOME}/tomee.log" &
+   "${__boot_CATALINA_CMD}" "run" &
    sleep 1
 
    if [ "${PREVENT_SLEEP}" ]
@@ -48,12 +45,12 @@ boot_main () {
 
    echo "${NAME}: Worker stoped by itself... not good, not good..."
 
-   boot_finalize
+   __boot_finalize
 
    exit 0
 }
 
-boot_handleShutdown () {
+__boot_handleShutdown () {
    echo "${NAME}: Bootloader is requested to shutdown."
 
    if [ "${PREVENT_SLEEP}" ]
@@ -64,17 +61,17 @@ boot_handleShutdown () {
    "${__boot_CATALINA_CMD}" "stop" "15"
 
    "${__boot_DERBY_CMD}" "stop" \
-      "-user" "$(getDbUser)" \
-      "-password" "$(getDbPassword)" 
+      "-user" "$(private_getDbAdminUsername)" \
+      "-password" "$(private_getDbAdminPassword)" 
 
    wait
 
-   boot_finalize
+   __boot_finalize
 
    exit 0
 }
 
-boot_finalize () {
+__boot_finalize () {
    echo -n "${NAME}: Finalize... "
 
    if [ "${SAVE_STATE}" ]
