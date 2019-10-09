@@ -10,6 +10,7 @@ __backup_LOCK_FILE_PATH="/JavaDB_Backups/state.lock"
 
 __backup_WEBAPPS_DIR="${CATALINA_HOME##*/}/webapps"
 __backup_DBS_DIR="${DERBY_HOME##*/}/db"
+__backup_LOGS_DIR="${DERBY_HOME##*/}/logs"
 
 backup_obtain () {
    local - waitTime attempts
@@ -71,6 +72,18 @@ __backup_save () {
       -X POST https://content.dropboxapi.com/2/files/upload \
       --header "$(__backup_getAuthHeader)" \
       --header "Dropbox-API-Arg: { \"path\": \"${__backup_TAR_FILE_PATH}\", \"mode\": \"overwrite\" }" \
+      --header "Content-Type: application/octet-stream" \
+      --data-binary @-
+   tar \
+      -cf - \
+      -C "${HOME}" \
+      "${__backup_LOGS_DIR}" \
+   | curl \
+      --silent \
+      --retry "${__backup_MAX_RETRIES}" \
+      -X POST https://content.dropboxapi.com/2/files/upload \
+      --header "$(__backup_getAuthHeader)" \
+      --header "Dropbox-API-Arg: { \"path\": \"$(__backup_getLogsTarFilePath)\", \"mode\": \"overwrite\" }" \
       --header "Content-Type: application/octet-stream" \
       --data-binary @-
 }
@@ -156,6 +169,10 @@ __backup_getTimestamp () {
 
 __backup_getAuthHeader () {
    echo -n "Authorization: Bearer $(getAuthToken)"
+}
+
+__backup_getLogsTarFilePath () {
+   echo -n "/JavaDB_Backups/logs-$(__backup_getTimestamp ()).tar"
 }
 
 __backup_checkIntegrity () {

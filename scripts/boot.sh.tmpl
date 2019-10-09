@@ -3,6 +3,7 @@
 NAME="${NAME:-"${0##*/}"}"
 
 export SCRIPTS_HOME="${HOME}/$<<SCRIPTS_DIR>>"
+export LOGS_HOME="${HOME}/logs"
 export JAVA_HOME="${HOME}/$<<JRE_DIR>>"
 export JRE_HOME="${HOME}/$<<JRE_DIR>>"
 export CATALINA_HOME="${HOME}/$<<TOMEE_DIR>>"
@@ -24,15 +25,17 @@ PREVENT_SLEEP="${PREVENT_SLEEP:-""}"
 trap "boot_handleShutdown" INT TERM
 
 boot_main () {
+   mkdir -p "${LOGS_HOME}"
+
    if [ "${SAVE_STATE}" ]
    then
       backup_obtain
    fi
 
-   "${__boot_DERBY_CMD}" "start" &
+   "${__boot_DERBY_CMD}" "start" 2>&1 >"${LOGS_HOME}/derby.log" &
    sleep 1
 
-   "${__boot_CATALINA_CMD}" "run" &
+   "${__boot_CATALINA_CMD}" "run" 2>&1 >"${LOGS_HOME}/tomee.log" &
    sleep 1
 
    if [ "${PREVENT_SLEEP}" ]
