@@ -176,10 +176,10 @@ createBootloader () {
    echo -n "${POINTER} Bundling boot.sh"
 
    cat "${BPACK_DIR}/scripts/boot.sh.tmpl" \
-   | sed -e 's/\$<<SCRIPTS_DIR>>/scripts/' \
-   | sed -e 's/\$<<JRE_DIR>>/jre/' \
-   | sed -e 's/\$<<TOMEE_DIR>>/tomee/' \
-   | sed -e 's/\$<<DERBY_DIR>>/derby/' \
+   | sed -e 's/\$<<SCRIPTS_DIR>>/'"${SCRIPTS_DIR}"'/' \
+   | sed -e 's/\$<<JRE_DIR>>/'"${JRE_DIR}"'/' \
+   | sed -e 's/\$<<TOMEE_DIR>>/'"${TOMEE_DIR}"'/' \
+   | sed -e 's/\$<<DERBY_DIR>>/'"${DERBY_DIR}"'/' \
    > "boot.sh"
 
    if [ ! -f "boot.sh" ]
