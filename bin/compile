@@ -93,7 +93,7 @@ installDerbyDatabase () {
 installTomeeServer () {
    local oldPwd TOMEE_URL BVAL_CORE_URL BVAL_JSR_URL DERBYCLIENT_URL
 
-   TOMEE_URL="${APACHE_REPO_URL}/tomee/apache-tomee/${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
+   TOMEE_URL="http://mirror.linux-ia64.org/apache/tomee/tomee-${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
    BVAL_CORE_URL="${APACHE_REPO_URL}/bval/bval-core/1.1.2/bval-core-1.1.2.jar"
    BVAL_JSR_URL="${APACHE_REPO_URL}/bval/bval-jsr/1.1.2/bval-jsr-1.1.2.jar"
 
