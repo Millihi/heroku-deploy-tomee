@@ -28,9 +28,9 @@ installJre () {
 
    echo -n "${POINTER} Bundling JRE ${JRE_VERSION} to [${JRE_DIR}]"
 
-   mkdir -p "${JDK_HOME}"
    curl --silent --location "${JDK_ZULU_URL}" | tar xz
-   ls -lah "${BUILD_DIR}"
+   mv -f "${BUILD_DIR}/zulu8.40.0.25-ca-jdk8.0.222-linux_x64" "${JDK_HOME}"
+   ls -lah "${JDK_HOME}"
 
    if [ ! -d "${JDK_HOME}" ]
    then
