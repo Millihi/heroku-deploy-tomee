@@ -20,7 +20,7 @@ APACHE_REPO_URL="${MAVEN_REPO_URL}/org/apache"
 installJre () {
    local oldPwd JVM_BPACK_URL JDK_HOME
 
-   JVM_BPACK_URL="http://heroku-jvm-common.s3.amazonaws.com/jvm-buildpack-common.tar.gz"
+   JDK_ZULU_URL="https://cdn.azul.com/zulu/bin/zulu8.40.0.25-ca-jdk8.0.222-linux_x64.tar.gz"
    JDK_HOME="${BUILD_DIR}/.jdk"
 
    oldPwd="${PWD}"
@@ -28,14 +28,9 @@ installJre () {
 
    echo -n "${POINTER} Bundling JRE ${JRE_VERSION} to [${JRE_DIR}]"
 
-   curl --silent --location "${JVM_BPACK_URL}" | tar xz
-   . bin/java
-   echo "java.runtime.version=${JRE_VERSION}" > "${BUILD_DIR}/system.properties"
-   logger -p user.notice -t "slugc[$$]" "language_pack_java download_jdk"
-   LOGGER_FLAGS="${LOGGER_FLAGS} download_jdk"
-   javaVersion="$(detect_java_version "${BUILD_DIR}")"
-   install_java "${BUILD_DIR}" "${javaVersion}"
-   jdk_overlay "${BUILD_DIR}"
+   mkdir -p "${JDK_HOME}"
+   cd "${JDK_HOME}"
+   curl --silent --location "${JDK_ZULU_URL}" | tar xz
 
    if [ ! -d "${JDK_HOME}" ]
    then
@@ -51,9 +46,8 @@ installJre () {
       exit 1
    fi
 
-#   mv -f "${JDK_HOME}/jre" "${BUILD_DIR}"
-#   rm -rf "${JDK_HOME}"
-   mv -f "${JDK_HOME}" "${BUILD_DIR}/jre"
+   mv -f "${JDK_HOME}/jre" "${BUILD_DIR}"
+   rm -rf "${JDK_HOME}"
 
    wait
 
