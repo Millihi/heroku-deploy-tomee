@@ -30,6 +30,7 @@ installJre () {
 
    mkdir -p "${JDK_HOME}"
    curl --silent --location "${JDK_ZULU_URL}" | tar xz
+   ls -lah "${BUILD_DIR}"
 
    if [ ! -d "${JDK_HOME}" ]
    then
