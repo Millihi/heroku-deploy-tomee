@@ -51,8 +51,9 @@ installJre () {
       exit 1
    fi
 
-   mv -f "${JDK_HOME}/jre" "${BUILD_DIR}"
-   rm -rf "${JDK_HOME}"
+#   mv -f "${JDK_HOME}/jre" "${BUILD_DIR}"
+#   rm -rf "${JDK_HOME}"
+   mv -f "${JDK_HOME}" "${BUILD_DIR}/jre"
 
    wait
 

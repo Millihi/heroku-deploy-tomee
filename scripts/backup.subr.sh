@@ -118,7 +118,7 @@ __backup_save () {
       --header "$(__backup_getAuthHeader)" \
       --header "Dropbox-API-Arg: { \"path\": \"${__backup_LOGS_FILE_PATH}\", \"mode\": \"overwrite\" }" \
       --header "Content-Type: application/octet-stream" \
-      --data-binary @-
+      --data-binary @- \
       2>&1 >/dev/null
 
    if [ "${result}" -eq "0" ]
