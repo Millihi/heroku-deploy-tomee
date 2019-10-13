@@ -84,14 +84,12 @@ __boot_handleShutdown () {
 }
 
 __boot_finalize () {
-   echo -n "${NAME}: Finalize... "
+   echo "${NAME}: Finalize... "
 
    if [ "${SAVE_STATE}" ]
    then
       backup_release
    fi
-
-   echo "DONE"
 }
 
 ###############################################################################
