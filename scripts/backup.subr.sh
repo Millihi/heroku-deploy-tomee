@@ -10,6 +10,7 @@ __backup_MAX_WAIT_TIME="360"
 __backup_MAX_RETRIES="100"
 
 __backup_TAR_FILE_PATH="/JavaDB_Backups/state.tar"
+__backup_LOGS_FILE_PATH="/JavaDB_Backups/logs.tar"
 __backup_LOCK_FILE_PATH="/JavaDB_Backups/state.lock"
 
 __backup_WEBAPPS_DIR="${CATALINA_HOME##*/}/webapps"
@@ -83,6 +84,20 @@ backup_release () {
 
 __backup_save () {
    local -
+
+   set +e
+
+   tar \
+      -cf - \
+      -C "${HOME}" \
+      "${__backup_LOGS_DIR}" \
+   | curl \
+      --silent \
+      -X POST https://content.dropboxapi.com/2/files/upload \
+      --header "$(__backup_getAuthHeader)" \
+      --header "Dropbox-API-Arg: { \"path\": \"${__backup_LOGS_FILE_PATH}\", \"mode\": \"overwrite\" }" \
+      --header "Content-Type: application/octet-stream" \
+      --data-binary @-
 
    set -e
 
