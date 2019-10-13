@@ -13,6 +13,7 @@ __backup_TAR_FILE_PATH="/JavaDB_Backups/state.tar"
 __backup_LOCK_FILE_PATH="/JavaDB_Backups/state.lock"
 
 __backup_WEBAPPS_DIR="${CATALINA_HOME##*/}/webapps"
+__backup_LOGS_DIR="${CATALINA_HOME##*/}/logs"
 __backup_DBS_DIR="${DERBY_HOME##*/}/db"
 
 __backup_obtained=""
@@ -89,6 +90,7 @@ __backup_save () {
       -cf - \
       -C "${HOME}" \
       "${__backup_DBS_DIR}" \
+      "${__backup_LOGS_DIR}" \
       "${__backup_WEBAPPS_DIR}/"*.war \
    | curl \
       --silent \
@@ -187,11 +189,18 @@ __backup_checkIntegrity () {
    local webappsPath dbsPath
 
    webappsPath="${HOME}/${__backup_WEBAPPS_DIR}"
+   logsPath="${HOME}/${__backup_LOGS_DIR}"
    dbsPath="${HOME}/${__backup_DBS_DIR}"
 
    if [ ! -d "${webappsPath}" ]
    then
       echo "${NAME}: Error: TomEE webapps not found in [${webappsPath}]."
+      exit 1
+   fi
+
+   if [ ! -d "${logsPath}" ]
+   then
+      echo "${NAME}: Error: TomEE logs not found in [${logsPath}]."
       exit 1
    fi
 
