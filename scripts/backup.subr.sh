@@ -83,30 +83,18 @@ backup_release () {
 ###############################################################################
 
 __backup_save () {
-   local -
+   local - result
 
    set +e
 
-   tar \
-      -cf - \
-      -C "${HOME}" \
-      "${__backup_LOGS_DIR}" \
-   | curl \
-      --silent \
-      -X POST https://content.dropboxapi.com/2/files/upload \
-      --header "$(__backup_getAuthHeader)" \
-      --header "Dropbox-API-Arg: { \"path\": \"${__backup_LOGS_FILE_PATH}\", \"mode\": \"overwrite\" }" \
-      --header "Content-Type: application/octet-stream" \
-      --data-binary @-
-
-   set -e
+   echo -n "${NAME}: Saving backup... "
 
    tar \
       -cf - \
       -C "${HOME}" \
       "${__backup_DBS_DIR}" \
-      "${__backup_LOGS_DIR}" \
       "${__backup_WEBAPPS_DIR}/"*.war \
+      2>/dev/null \
    | curl \
       --silent \
       --retry "${__backup_MAX_RETRIES}" \
@@ -114,13 +102,41 @@ __backup_save () {
       --header "$(__backup_getAuthHeader)" \
       --header "Dropbox-API-Arg: { \"path\": \"${__backup_TAR_FILE_PATH}\", \"mode\": \"overwrite\" }" \
       --header "Content-Type: application/octet-stream" \
+      --data-binary @- \
+      2>&1 >/dev/null
+
+   result="$?"
+
+   tar \
+      -cf - \
+      -C "${HOME}" \
+      "${__backup_LOGS_DIR}" \
+      2>/dev/null \
+   | curl \
+      --silent \
+      -X POST https://content.dropboxapi.com/2/files/upload \
+      --header "$(__backup_getAuthHeader)" \
+      --header "Dropbox-API-Arg: { \"path\": \"${__backup_LOGS_FILE_PATH}\", \"mode\": \"overwrite\" }" \
+      --header "Content-Type: application/octet-stream" \
       --data-binary @-
+      2>&1 >/dev/null
+
+   if [ "${result}" -eq "0" ]
+   then
+      echo "DONE"
+   else
+      echo "FAIL"
+   fi
+
+   return "${result}"
 }
 
 __backup_load () {
-   local -
+   local - result
 
-   set -e
+   set +e
+
+   echo -n "${NAME}: Loading backup... "
 
    curl \
       --silent \
@@ -128,18 +144,34 @@ __backup_load () {
       -X POST https://content.dropboxapi.com/2/files/download \
       --header "$(__backup_getAuthHeader)" \
       --header "Dropbox-API-Arg: { \"path\": \"${__backup_TAR_FILE_PATH}\" }" \
+      2>/dev/null \
    | tar \
       -xf - \
-      -C "${HOME}"
+      -C "${HOME}" \
+      2>&1 >/dev/null
+
+   result="$?"
+
+   if [ "${result}" -eq "0" ]
+   then
+      echo "DONE"
+   else
+      echo "FAIL"
+   fi
+
+   return "${result}"
 }
 
 __backup_lock () {
-   local -
+   local - result
 
-   set -e
+   set +e
+
+   echo -n "${NAME}: Locking backup... "
 
    echo \
       "$(__backup_getTimestamp)" \
+      2>/dev/null \
    | curl \
       --silent \
       --retry "${__backup_MAX_RETRIES}" \
@@ -147,13 +179,27 @@ __backup_lock () {
       --header "$(__backup_getAuthHeader)" \
       --header "Dropbox-API-Arg: { \"path\": \"${__backup_LOCK_FILE_PATH}\", \"mode\": \"add\" }" \
       --header "Content-Type: application/octet-stream" \
-      --data-binary @-
+      --data-binary @- \
+      2>&1 >/dev/null
+
+   result="$?"
+
+   if [ "${result}" -eq "0" ]
+   then
+      echo "DONE"
+   else
+      echo "FAIL"
+   fi
+
+   return "${result}"
 }
 
 __backup_unlock () {
-   local -
+   local - result
 
-   set -e
+   set +e
+
+   echo -n "${NAME}: Unlocking backup... "
 
    curl \
       --silent \
@@ -161,7 +207,19 @@ __backup_unlock () {
       -X POST https://api.dropboxapi.com/2/files/delete_v2 \
       --header "$(__backup_getAuthHeader)" \
       --header "Content-Type: application/json" \
-      --data "{ \"path\": \"${__backup_LOCK_FILE_PATH}\" }"
+      --data "{ \"path\": \"${__backup_LOCK_FILE_PATH}\" }" \
+      2>&1 >/dev/null
+
+   result="$?"
+
+   if [ "${result}" -eq "0" ]
+   then
+      echo "DONE"
+   else
+      echo "FAIL"
+   fi
+
+   return "${result}"
 }
 
 __backup_isLocked () {
@@ -188,8 +246,10 @@ __backup_getLockState () {
       -X POST https://content.dropboxapi.com/2/files/download \
       --header "$(__backup_getAuthHeader)" \
       --header "Dropbox-API-Arg: { \"path\": \"${__backup_LOCK_FILE_PATH}\" }" \
+      2>/dev/null \
    | sed \
-      -ne '/error_summary.\{1,\}not_found/p'
+      -ne '/error_summary.\{1,\}not_found/p' \
+      2>/dev/null
 }
 
 __backup_getTimestamp () {
