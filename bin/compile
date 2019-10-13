@@ -29,7 +29,6 @@ installJre () {
    echo -n "${POINTER} Bundling JRE ${JRE_VERSION} to [${JRE_DIR}]"
 
    mkdir -p "${JDK_HOME}"
-   cd "${JDK_HOME}"
    curl --silent --location "${JDK_ZULU_URL}" | tar xz
 
    if [ ! -d "${JDK_HOME}" ]
