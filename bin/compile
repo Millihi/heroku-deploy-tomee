@@ -18,37 +18,32 @@ APACHE_REPO_URL="${MAVEN_REPO_URL}/org/apache"
 ###############################################################################
 #  installJre
 installJre () {
-   local oldPwd JDK_FILENAME JDK_URL JDK_HOME
-
-   JDK_HOME="${BUILD_DIR}/.jdk"
+   local oldPwd JRE_FILENAME JRE_URL JRE_PATH
 
    oldPwd="${PWD}"
    cd "${BUILD_DIR}"
 
    echo -n "${POINTER} Bundling JRE ${JRE_VERSION} to [${JRE_DIR}]"
 
-   JDK_URL="$(azul_getUrl "JRE" "${JRE_VERSION}" "linux_x64")"
-   JDK_FILENAME="$(azul_getFilename "${JDK_URL}")"
+   JRE_URL="$(azul_getUrl "JRE" "${JRE_VERSION}" "linux_x64")"
+   JRE_FILENAME="$(azul_getFilename "${JRE_URL}")"
+   JRE_PATH="${BUILD_DIR}/${JRE_FILENAME}"
 
-   curl --silent --location "${JDK_URL}" | tar xz
-   mv -f "${BUILD_DIR}/${JDK_FILENAME}" "${JDK_HOME}"
+   curl --silent --location "${JRE_URL}" | tar xz
 
-   if [ ! -d "${JDK_HOME}" ]
+   if [ ! -d "${JRE_PATH}" ]
    then
       echo " FAIL"
-      echo "${SPACER} JDK not found in [${JDK_HOME}]"
+      echo "${SPACER} JDK not found in [${JRE_PATH}]"
       exit 1
    fi
 
-   if [ ! -d "${JDK_HOME}/jre" ]
-   then
-      echo " FAIL"
-      echo "${SPACER} JRE not found in [${JDK_HOME}/jre]"
-      exit 1
-   fi
+   mv -f "${JRE_PATH}" "${JRE_HOME}"
 
-   mv -f "${JDK_HOME}/jre" "${BUILD_DIR}"
-   rm -rf "${JDK_HOME}"
+   if [ -e "${JRE_PATH}" ]
+   then
+      rm -rf "${JRE_PATH}"
+   fi
 
    wait
 
