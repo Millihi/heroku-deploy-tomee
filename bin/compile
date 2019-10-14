@@ -27,7 +27,7 @@ installJre () {
 
    echo -n "${POINTER} Bundling JRE ${JRE_VERSION} to [${JRE_DIR}]"
 
-   JDK_URL="$(azul_getUrl "JRE" "JRE_VERSION" "linux_x64")"
+   JDK_URL="$(azul_getUrl "JRE" "${JRE_VERSION}" "linux_x64")"
    JDK_FILENAME="$(azul_getFilename "${JDK_URL}")"
 
    curl --silent --location "${JDK_URL}" | tar xz
