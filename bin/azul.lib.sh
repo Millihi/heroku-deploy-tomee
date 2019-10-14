@@ -163,6 +163,3 @@ azul_getFilename () {
 }
 
 __azul_loadList
-
-echo "$(azul_getUrl "JDK" "1.8" "linux_x64")"
-echo "$(azul_getFilename "$(azul_getUrl "JDK" "1.8" "linux_x64")")"

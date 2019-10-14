@@ -27,8 +27,6 @@ installJre () {
 
    echo -n "${POINTER} Bundling JRE ${JRE_VERSION} to [${JRE_DIR}]"
 
-   . "${BPACK_DIR}/bin/azul.lib.sh"
-
    JDK_URL="$(azul_getUrl "JRE" "JRE_VERSION" "linux_x64")"
    JDK_FILENAME="$(azul_getFilename "${JDK_URL}")"
 
@@ -217,6 +215,15 @@ if [ -f "${BPACK_CONFIG_LIB}" -a -r "${BPACK_CONFIG_LIB}" ]
 then
    echo "${POINTER} Found config [${BPACK_CONFIG}]"
    . "${BPACK_CONFIG_LIB}"
+fi
+
+BPACK_AZUL="bin/azul.lib.sh"
+BPACK_AZUL_LIB="${BPACK_DIR}/${BPACK_AZUL}"
+
+if [ -f "${BPACK_AZUL_LIB}" -a -r "${BPACK_AZUL_LIB}" ]
+then
+   echo "${POINTER} Found config [${BPACK_AZUL}]"
+   . "${BPACK_AZUL_LIB}"
 fi
 
 setUpEnvironment
