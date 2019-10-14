@@ -18,10 +18,8 @@ APACHE_REPO_URL="${MAVEN_REPO_URL}/org/apache"
 ###############################################################################
 #  installJre
 installJre () {
-   local oldPwd JDK_ZULU_NAME JDK_ZULU_URL JDK_HOME
+   local oldPwd JDK_FILENAME JDK_URL JDK_HOME
 
-   JDK_ZULU_NAME="zulu8.40.0.25-ca-jdk8.0.222-linux_x64"
-   JDK_ZULU_URL="https://cdn.azul.com/zulu/bin/${JDK_ZULU_NAME}.tar.gz"
    JDK_HOME="${BUILD_DIR}/.jdk"
 
    oldPwd="${PWD}"
@@ -29,8 +27,13 @@ installJre () {
 
    echo -n "${POINTER} Bundling JRE ${JRE_VERSION} to [${JRE_DIR}]"
 
-   curl --silent --location "${JDK_ZULU_URL}" | tar xz
-   mv -f "${BUILD_DIR}/${JDK_ZULU_NAME}" "${JDK_HOME}"
+   . "${BPACK_DIR}/bin/azul.lib.sh"
+
+   JDK_URL="$(azul_getUrl "JRE" "JRE_VERSION" "linux_x64")"
+   JDK_FILENAME="$(azul_getFilename "${JDK_URL}")"
+
+   curl --silent --location "${JDK_URL}" | tar xz
+   mv -f "${BUILD_DIR}/${JDK_FILENAME}" "${JDK_HOME}"
 
    if [ ! -d "${JDK_HOME}" ]
    then
