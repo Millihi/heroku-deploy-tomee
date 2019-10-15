@@ -18,31 +18,39 @@ APACHE_REPO_URL="${MAVEN_REPO_URL}/org/apache"
 ###############################################################################
 #  installJre
 installJre () {
-   local oldPwd JRE_FILENAME JRE_URL JRE_PATH
+   local - oldPwd jreFilename jreUrl jrePath
 
    oldPwd="${PWD}"
    cd "${BUILD_DIR}"
 
    echo -n "${POINTER} Bundling JRE ${JRE_VERSION} to [${JRE_DIR}]"
 
-   JRE_URL="$(azul_getUrl "JRE" "${JRE_VERSION}" "linux_x64")"
-   JRE_FILENAME="$(azul_getFilename "${JRE_URL}")"
-   JRE_PATH="${BUILD_DIR}/${JRE_FILENAME}"
+   jreUrl="$(azul_getUrl "JRE" "${JRE_VERSION}" "linux_x64")"
 
-   curl --silent --location "${JRE_URL}" | tar xz
-
-   if [ ! -d "${JRE_PATH}" ]
+   if [ -z "${jreUrl}" ]
    then
       echo " FAIL"
-      echo "${SPACER} JDK not found in [${JRE_PATH}]"
-      exit 1
+      echo "${SPACER} Could not find JRE for given [${JRE_VERSION}]" >&2
+      exit 255
    fi
 
-   mv -f "${JRE_PATH}" "${JRE_HOME}"
+   jreFilename="$(azul_getFilename "${jreUrl}")"
+   jrePath="${BUILD_DIR}/${jreFilename}"
 
-   if [ -e "${JRE_PATH}" ]
+   curl --silent --location "${jreUrl}" | tar xz
+
+   if [ ! -d "${jrePath}" ]
    then
-      rm -rf "${JRE_PATH}"
+      echo " FAIL"
+      echo "${SPACER} JDK not found in [${jrePath}]" >&2
+      exit 255
+   fi
+
+   mv -f "${jrePath}" "${JRE_HOME}"
+
+   if [ -e "${jrePath}" ]
+   then
+      rm -rf "${jrePath}"
    fi
 
    wait
@@ -55,24 +63,22 @@ installJre () {
 ###############################################################################
 #  installDerbyDatabase
 installDerbyDatabase () {
-   local oldPwd DERBY_URL
+   local - oldPwd derbyUrl
 
-   DERBY_URL="http://archive.apache.org/dist/db/derby/db-derby-${DERBY_VERSION}/db-derby-${DERBY_VERSION}-bin.tar.gz"
+   derbyUrl="http://archive.apache.org/dist/db/derby/db-derby-${DERBY_VERSION}/db-derby-${DERBY_VERSION}-bin.tar.gz"
 
    oldPwd="${PWD}"
    cd "${BUILD_DIR}"
 
    echo -n "${POINTER} Bundling Derby to [${DERBY_DIR}]"
 
-   curl --silent --location "${DERBY_URL}" | tar xz
+   curl --silent --location "${derbyUrl}" | tar xz
    mv -f "${BUILD_DIR}/db-derby-${DERBY_VERSION}-bin" "${DERBY_HOME}"
 
    cp -rf "${BPACK_DIR}/database/"* "${DERBY_HOME}/"
    chmod +x "${DERBY_HOME}/bin/derby_server.sh"
    chmod +x "${DERBY_HOME}/bin/setenv.sh"
    mkdir -p "${DERBY_HOME}/db"
-
-   wait
 
    echo " DONE"
 
@@ -82,18 +88,19 @@ installDerbyDatabase () {
 ###############################################################################
 #  installTomeeServer
 installTomeeServer () {
-   local oldPwd TOMEE_URL BVAL_CORE_URL BVAL_JSR_URL DERBYCLIENT_URL
+   local - oldPwd tomeeUrl bvalCoreUrl bvalJsrUrl
 
-   TOMEE_URL="${APACHE_REPO_URL}/tomee/apache-tomee/${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
-   BVAL_CORE_URL="${APACHE_REPO_URL}/bval/bval-core/1.1.2/bval-core-1.1.2.jar"
-   BVAL_JSR_URL="${APACHE_REPO_URL}/bval/bval-jsr/1.1.2/bval-jsr-1.1.2.jar"
+   tomeeUrl="${APACHE_REPO_URL}/tomee/apache-tomee/${TOMEE_VERSION}/apache-tomee-${TOMEE_VERSION}-plus.tar.gz"
+   bvalCoreUrl="${APACHE_REPO_URL}/bval/bval-core/1.1.2/bval-core-1.1.2.jar"
+   bvalJsrUrl="${APACHE_REPO_URL}/bval/bval-jsr/1.1.2/bval-jsr-1.1.2.jar"
 
    oldPwd="${PWD}"
    cd "${BUILD_DIR}"
 
-   echo -n "${POINTER} Bundling TomEE version ${TOMEE_VERSION} to [${TOMEE_DIR}]"
+   echo -n \
+      "${POINTER} Bundling TomEE version ${TOMEE_VERSION} to [${TOMEE_DIR}]"
 
-   curl --silent --location "${TOMEE_URL}" | tar xz
+   curl --silent --location "${tomeeUrl}" | tar xz
    mv -f "${BUILD_DIR}/apache-tomee-plus-${TOMEE_VERSION}" "${TOMEE_HOME}"
 
    cp -rf "${BPACK_DIR}/server/"* "${TOMEE_HOME}/"
@@ -103,11 +110,13 @@ installTomeeServer () {
    if [ "${TOMEE_VERSION}" = "8.0.0" ]
    then
       rm -rf "${TOMEE_HOME}/lib/bval-"*
-      curl --silent --remote-name --location "${BVAL_CORE_URL}" &
-      curl --silent --remote-name --location "${BVAL_JSR_URL}" &
+      curl --silent --remote-name --location "${bvalCoreUrl}" &
+      curl --silent --remote-name --location "${bvalJsrUrl}" &
    fi
 
-   cp -rf "${DERBY_HOME}/lib/derbyclient.jar" "${TOMEE_HOME}/lib/derbyclient-${DERBY_VERSION}.jar"
+   cp -rf \
+      "${DERBY_HOME}/lib/derbyclient.jar" \
+      "${TOMEE_HOME}/lib/derbyclient-${DERBY_VERSION}.jar"
 
    wait
 
@@ -119,7 +128,7 @@ installTomeeServer () {
 ###############################################################################
 #  installScripts
 installScripts () {
-   local oldPwd
+   local - oldPwd
 
    oldPwd="${PWD}"
    cd "${BUILD_DIR}"
@@ -138,7 +147,7 @@ installScripts () {
 ###############################################################################
 #  createAdminPassword
 createAdminPassword () {
-   local random oldPwd
+   local - random oldPwd
 
    oldPwd="${PWD}"
    cd "${BUILD_DIR}"
@@ -148,7 +157,9 @@ createAdminPassword () {
    echo -n "${SPACER} Admin password is "
 
    random="$(dd if=/dev/urandom count=1 2>/dev/null | md5sum | cut -c 1-6)"
-   sed -i.bak -e "s/%%PASSWORD%%/${random}/" "${TOMEE_HOME}/conf/tomcat-users.xml"
+   sed -i.bak \
+      -e "s/%%PASSWORD%%/${random}/" \
+      "${TOMEE_HOME}/conf/tomcat-users.xml"
 
    echo "${random}"
    echo "${SPACER} !!! ATTENTION !!! ATTENTION !!! ATTENTION !!!"
@@ -176,7 +187,7 @@ createBootloader () {
    if [ ! -f "boot.sh" ]
    then
       echo " FAIL"
-      exit 1
+      exit 255
    fi
 
    chmod +x "boot.sh"
@@ -186,6 +197,35 @@ createBootloader () {
    cd "${oldPwd}"
 }
 
+###############################################################################
+#  loadLibraries
+loadLibraries () {
+   local - configFile configPath azulFile azulPath
+
+   configFile="bin/config.lib.sh"
+   configPath="${BPACK_DIR}/${configFile}"
+
+   if [ -f "${configPath}" -a -r "${configPath}" ]
+   then
+      echo "${POINTER} Load library [${configFile}]"
+      . "${configPath}"
+   fi
+
+   azulFile="bin/azul.lib.sh"
+   azulPath="${BPACK_DIR}/${azulFile}"
+
+   if [ -f "${azulPath}" -a -r "${azulPath}" ]
+   then
+      echo "${POINTER} Load library [${azulFile}]"
+      . "${azulPath}"
+   else
+      echo "${SPACER} Azul library not found in [${azulPath}]" >&2
+      exit 255
+   fi
+}
+
+###############################################################################
+#  setUpEnvironment
 setUpEnvironment () {
    DERBY_VERSION="${DERBY_VERSION:-10.14.2.0}"
    DERBY_DIR="${DERBY_DIR:-derby}"
@@ -203,24 +243,7 @@ setUpEnvironment () {
    SCRIPTS_HOME="${BUILD_DIR}/${SCRIPTS_DIR}"
 }
 
-BPACK_CONFIG="bin/config.lib.sh"
-BPACK_CONFIG_LIB="${BPACK_DIR}/${BPACK_CONFIG}"
-
-if [ -f "${BPACK_CONFIG_LIB}" -a -r "${BPACK_CONFIG_LIB}" ]
-then
-   echo "${POINTER} Found config [${BPACK_CONFIG}]"
-   . "${BPACK_CONFIG_LIB}"
-fi
-
-BPACK_AZUL="bin/azul.lib.sh"
-BPACK_AZUL_LIB="${BPACK_DIR}/${BPACK_AZUL}"
-
-if [ -f "${BPACK_AZUL_LIB}" -a -r "${BPACK_AZUL_LIB}" ]
-then
-   echo "${POINTER} Found config [${BPACK_AZUL}]"
-   . "${BPACK_AZUL_LIB}"
-fi
-
+loadLibraries
 setUpEnvironment
 
 if [ "${DEBUG_BUILD}" ]
